@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nauka Tworzenia Stron Internetowych</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/csslint/1.0.5/csslint.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Nauka Tworzenia Stron Internetowych</h1>
+  </header>
+
+  <main>
+    <section id="editor">
+      <div id="controls">
+        <button id="next-level">Przejdź do kolejnego poziomu</button>
+        <button id="reset">Zresetuj grę</button>
+      </div>
+      <br>
+      
+      <p> Kod HTML:</p>
+      <textarea id="html-code" placeholder="Wpisz kod HTML tutaj..."></textarea>
+      <p>Kod CSS:</p>
+      <textarea id="css-code" placeholder="Wpisz kod CSS tutaj..."></textarea>
+      <h3 id="feedback"></h3>
+    </section>
+
+    <section id="instructions">
+      <h2>Poziom 1: Utwórz nagłówek 1 stopnia</h2>
+      <p>Twoje zadanie to utworzenie nagłówka 1 stopnia (<code>&lt;h1&gt;</code>) w sekcji <code>&lt;body&gt;</code>, pamiętaj o zamknięciu. Wprowadź odpowiedni kod HTML, aby zakończyć poziom.</p>`;
+      
+    </section>
+    
+
+    <section id="preview">
+      <h2>Podgląd</h2>
+      <iframe id="output" style="width: 100%; height: 500px;"></iframe>
+      <button id="fullscreenButton">Pełny ekran</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>Projekt Kacper Mazur &copy; 2024</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
