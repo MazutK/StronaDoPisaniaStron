@@ -255,7 +255,6 @@ footer:hover #arrow {
 }
 #reset {
   display: block;
-  color: white;
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 5px;
@@ -275,7 +274,6 @@ footer:hover #arrow {
   display: inline-block; 
   padding: 10px 20px; 
   font-size: 16px; 
-  color: #fff;
   border: none; 
   z-index: 10;
   pointer-events: auto;
@@ -293,7 +291,7 @@ footer:hover #arrow {
 
 button {
   background-color: #4AB11D; 
-  color: #FFFFFF;
+  color: black;
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 5px;
