@@ -19,35 +19,47 @@
 
   <main>
     <section id="editor">
-      <div id="controls">
-        <button id="next-level">Przejdź do kolejnego poziomu</button>
+      <div class="controls">
         <button id="reset">Zresetuj grę</button>
+        <button id="next-level" class="pulse">Przejdź do kolejnego poziomu</button>
+        <audio id="button-sound" src="goodjob.mp3" preload="auto"></audio>
       </div>
       <br>
-      
       <p> Kod HTML:</p>
       <textarea id="html-code" placeholder="Wpisz kod HTML tutaj..."></textarea>
       <p>Kod CSS:</p>
       <textarea id="css-code" placeholder="Wpisz kod CSS tutaj..."></textarea>
       <h3 id="feedback"></h3>
       <button id="downloadBtn">Pobierz pliki</button>
-    </section>
 
-    <section id="instructions">
-      <h2>Poziom 1: Utwórz nagłówek 1 stopnia</h2>
-      <p>Twoje zadanie to utworzenie nagłówka 1 stopnia (<code>&lt;h1&gt;</code>) w sekcji <code>&lt;body&gt;</code>, pamiętaj o zamknięciu. Wprowadź odpowiedni kod HTML, aby zakończyć poziom.</p>`;
     </section>
+    <section id="middle">
+
+    <section id="instructions">    
+      <h2>Poziom 1: Utwórz nagłówek 1 stopnia</h2>
+      <p>Twoje zadanie to utworzenie nagłówka 1 stopnia (<code>&lt;h1&gt;</code>) w kodzie HTML, pamiętaj o zamknięciu. Wprowadź odpowiedni kod HTML, aby zakończyć poziom.</p>
+    </section>
+    <button id="Poradnik">Poradnik</button>
+
+  </section>
+    
 
 
     <section id="preview">
+      <div class="controls">
+        
+        <button id="fullscreenButton">Pełny ekran</button>
+      </div>
       <h2>Podgląd</h2>
-      <iframe id="output" style="width: 100%; height: 500px;"></iframe>
-      <button id="fullscreenButton">Pełny ekran</button>
+      <iframe id="output"></iframe>
+      
     </section>
   </main>
 
   <footer>
+    <h1 id="arrow">^</h1>
     <p>Projekt Kacper Mazur &copy; 2024</p>
+    <a href="https://github.com/MazutK">GitHub</a>
   </footer>
 
   <script src="script.js"></script>

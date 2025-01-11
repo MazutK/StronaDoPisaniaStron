@@ -5,10 +5,12 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background-color: #273322; 
+  color: #FFFFFF; 
 }
 
 header {
-  background-color: #0ee015e2;
+  background-image: url(matrix.gif);
   color: white;
   padding: 1rem;
   text-align: center;
@@ -18,6 +20,11 @@ textarea, .CodeMirror {
   width: 100%;
   max-width: 100%;  
   resize: none;
+}
+#preview {
+  background-color: #3C5C2E; 
+  color: #FFFFFF;
+  border-radius: 10px;
 }
 
 main {
@@ -32,30 +39,56 @@ section {
   padding: 1rem;
   box-sizing: border-box;
 }
+h1{
+  color:white;
+  margin-top: auto;
+}
 
 #editor {
-  background-color: #f7f7f7;
-  border-right: 2px solid #ddd;
-  max-height: 800px;
+  width: 30%;
+  padding: 1rem;
+  margin-top: 1rem;
+  border-radius: 15px;
+  color: #fff;
+  background-color: #4A6633;
+  overflow-y: auto;
+  max-height: 50rem;
+    margin-bottom: 2rem;
   float: left;
+  margin-right: 1rem;
+  overflow-x: hidden;
+
 }
 
 #editor p {
   font-size: 3ch;
   margin: 0px;
+  
 }
 
 #preview {
-  max-height: 800px;
+  color: #fff;
+  width: 30%;
+  padding: 1rem;
+  margin-top: 1rem;
+  border-radius: 15px;
+  background-color: #4A6633;
+  overflow-y: auto;
+  max-height: 50rem;
+  margin-bottom: 2rem;
+  float: left;
+  overflow-x: hidden;
+
 }
 
 #feedback {
   font-size: 2ch;
-  color: #000000;
+  color: #fff;
   opacity: 0; 
   transition: opacity 0.3s ease;
   animation: fadeIn 0.5s ease-out forwards;
   text-align: center;
+  border-radius: 5px;
 }
 
 /* Animacje */
@@ -108,38 +141,69 @@ textarea {
 }
 
 #preview iframe {
-  width: 100%;
-  height: 800px;
-  border: none;
+  width: 90%;
+  height: 650px;
+  border: 1px solid black;
+  border: 1px solid;
+  padding: 15px;
+  margin:0 auto;
+  display: block;  
+
 }
 
 #previewArea {
   width: 100%;
-  height: 500px;
-  border: 1px solid #ccc;
+  max-height: 50rem;
+    border: 1px solid #ccc;
   overflow: auto;
-  max-height: 800px;
+  margin:0 auto;
+
 }
 
 #fullscreenButton {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 0.5rem 1rem;
-  background-color: #2b00ff;
+  display: block;
   color: white;
-  border: none;
-  cursor: pointer;
-  margin-top: 7%;
-  z-index: 10000;
+  padding: 0.5rem 1rem;
   border: none;
   border-radius: 5px;
+  cursor: pointer;
+  margin-right: 0.5rem;
 }
 
+
+
 footer {
+  background-color: #273322; /* Ciemny zielony dla stopki */
+  color: #FFFFFF;
+  position: fixed; 
+  bottom: -7.2rem; 
+  left: 0;
+  color:white;
+  width: 100%;
+  z-index: 999999;
   text-align: center;
   padding: 1rem;
-  background-color: #6b6969;
+  /*background: radial-gradient(circle, rgba(163,180,34,1) 0%, rgba(2,120,0,1) 76%);*/
+  background-color: #2E332B;
+  transition: background-color 0.5s ease, bottom 0.5s ease; /* Połączone przejścia */
+
+
+}
+
+footer:hover {
+  bottom: 0; 
+  background-color: #48682D; /* Jaśniejszy odcień po najechaniu */
+
+}
+
+footer:hover #arrow {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease;
+}
+
+#arrow {
+  display: inline-block;
+  transition: transform 0.3s ease;
 }
 
 #downloadBtn {
@@ -147,60 +211,97 @@ footer {
 }
 
 #instructions {
+  background-color: #273322; /* Najciemniejszy zielony dla sekcji instrukcji */
+  color: #FFFFFF;
+  padding: 1rem;
+  border-radius: 10px;
+  pointer-events: auto;
+  position: relative;
+  width: 100%;
+  
+}
+#middle {
+  pointer-events: auto;
+  position: relative;
   width: 30%;
   padding: 1rem;
   margin-top: 1rem;
-  border-radius: 5px;
-  background-color: #ffffff;
+  border-radius: 15px;
+  background-color: #4A6633;
   overflow-y: auto;
-  max-height: 800px;
-  margin-bottom: 2rem;
+  max-height: 50rem;
+    margin-bottom: 2rem;
   float: left;
+  overflow-x: hidden;
 }
 
 #next-level {
   display: none;
-  margin-top: 1rem;
-  background-color: #2b00ff;
-  color: white;
   padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  margin-right: 1rem;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  margin-right: 30px;
   animation: pulse 1.5s ease-out infinite;
 }
+#output{
+  margin-right: 1rem;
+  margin-right: 30px;
 
+}
 #reset {
   display: block;
-  margin-top: 1rem;
-  background-color: #ff0000;
   color: white;
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  margin-right: 30px;
+  margin-right: 0.5rem;
 }
 
-#reset:hover {
-  background-color: #ff6969;
-  cursor: pointer;
+
+
+
+
+
+#Poradnik {
+  display: inline-block; 
+  padding: 10px 20px; 
+  font-size: 16px; 
+  color: #fff;
+  border: none; 
+  z-index: 10;
+  pointer-events: auto;
+  position: relative;
+  border-radius: 5px;
+  cursor: pointer; 
+  transition: background-color 0.3s; 
 }
 
-#next-level:hover {
-  background-color: #007bff;
-}
+
 
 button {
+  background-color: #4AB11D; 
+  color: #FFFFFF;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
   font-size: 120%;
   font-family: DejaVu Sans Mono, monospace;
   float: right;
 }
+button:hover {
+  background-color: #43DB00; 
+}
 
 #controls {
+  z-index: 999;
   float: right;
   display: flex;
+  
 }
 
 @media screen and (max-width: 768px) {
@@ -208,7 +309,7 @@ button {
     flex-direction: column; 
   }
 
-  #editor, #instructions, #preview {
+  #editor, #middle, #preview {
     width: 100%; 
     margin-bottom: 1rem; 
   }
@@ -220,8 +321,9 @@ button {
 
   #next-level, #reset {
     width: 100%;
-    margin-top: 1rem;
-  }
+    margin-top: 0.5rem;
+    
+}
 
   #preview iframe {
     height: 250px;

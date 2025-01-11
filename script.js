@@ -9,6 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const expandButton = document.getElementById('fullscreenButton');
   const previewSection = document.getElementById('preview');
   const iframe = document.getElementById('output');
+  const poradnik = document.getElementById('Poradnik');
+  const buttonSound = document.getElementById('button-sound');
+
+
+  poradnik.addEventListener('click',openSite);
 
   let isFullScreen = false; //Wartość domyślna dla okna podglądowego
   //next-level
@@ -54,6 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
     tabSize: 2,
     value: ` `
   });
+
+  function soundOnButton() {
+    nextLevelButton.classList.add('show'); 
+    buttonSound.play().catch((error) => {
+      console.error("Nie udało się odtworzyć dźwięku:", error);
+    });
+  }
+  
 
   // Funkcja aktualizująca podgląd
 function updatePreview() {
@@ -149,11 +162,7 @@ function resetGame() {
 
     htmlEditor.setValue(``);
     cssEditor.setValue(``);
-
-    instructions.innerHTML = `
-      <h2>Poziom 1: Utwórz nagłówek 1 stopnia</h2>
-      <p>Twoje zadanie to utworzenie nagłówka 1 stopnia (<code>&lt;h1&gt;</code>) w sekcji <code>&lt;body&gt;</code>, pamiętaj o zamknięciu. Wprowadź odpowiedni kod HTML, aby zakończyć poziom.</p>`;
-
+    setInstructions(1);
     nextLevelButton.style.display = "none";
     feedback.textContent = "";
 
@@ -183,10 +192,10 @@ function resetGame() {
     if (isFullScreen) {
         // Przełączanie na pełny ekran
         previewStyle.position = 'fixed';
-        previewStyle.top = '0';
+        previewStyle.top = '5rem';
         previewStyle.left = '0';
         previewStyle.width = '100vw';  
-        previewStyle.height = '100vh';  
+        previewStyle.height = '100em';  
         previewStyle.margin = '0';
         previewStyle.padding = '0';
         previewStyle.zIndex = '9999';  
@@ -194,16 +203,18 @@ function resetGame() {
         iframe.style.height = '100%';  
         expandButton.textContent = 'Zamknij podgląd pełnego ekranu';
     } else {
+      //Minimalizowanie do poprzedniego stanu
         previewStyle.position = '';
         previewStyle.top = '';
         previewStyle.left = '';
         previewStyle.width = '30%';
-        previewStyle.height = '500px';  
+        previewStyle.height = '800px';  
         previewStyle.margin = '';
         previewStyle.padding = '';
         previewStyle.zIndex = '';
-        iframe.style.width = '100%';
-        iframe.style.height = '500px';  
+        iframe.style.width = '90%';
+        iframe.style.height = '650px';  
+        iframe.style.display = 'block';
         expandButton.textContent = 'Pełny ekran';  
     }
 }
@@ -234,9 +245,12 @@ document.getElementById('downloadBtn').addEventListener('click', function() {
 //Funkcje sprawdzające poszczególne poziomy
 function checkLevel1() {
   const html = htmlEditor.getValue();  
-  if (html.includes('<h1>') && html.includes('</h1>')) {
+  const h1Pattern = /<h1>.*<\/h1>/s;
+  if (h1Pattern.test(html)) {
     setSuccessFeedback("Gratulacje! Użyłeś nagłówka 1 stopnia.");
     nextLevelButton.style.display = "block";
+    soundOnButton();
+
   } else {
     setErrorFeedback("Utwórz nagłówek 1 stopnia (h1) w ciele dokumentu.");
     nextLevelButton.style.display = 'none'; 
@@ -248,6 +262,7 @@ function checkLevel2() {
     if (css.includes('h1{text-align:center;}')) {
       setSuccessFeedback("Gratulacje! Wyśrodkowałeś tekst.");
       nextLevelButton.style.display = 'block'; 
+      soundOnButton();
     } else {
       setErrorFeedback("Wyśrodkuj tekst za pomocą CSS dodając odpowiedni znacznik.");
       nextLevelButton.style.display = 'none'; 
@@ -280,6 +295,7 @@ function checkLevel3() {
             if (isNotBlackColor(color)) {
                 setSuccessFeedback("Brawo! Udało Ci się ustawić kolor tła w formacie HEX lub RGB.");
                 nextLevelButton.style.display = "block"; 
+                soundOnButton();
             } else {
                 setErrorFeedback("Kolor czarny jest zabroniony. Wybierz inny kolor.");
                 nextLevelButton.style.display = "none"; 
@@ -301,6 +317,7 @@ function checkLevel4() {
     if (imgPattern.test(html)) {
       setSuccessFeedback("Gratulacje! Dodałeś obrazek do strony.");
       nextLevelButton.style.display = "block";
+      soundOnButton();
     } else {
       setErrorFeedback("Dodaj obrazek za pomocą znacznika <img src=\"\" /> w HTML. Upewnij się, że tag <img> ma prawidłowy atrybut src.");
       nextLevelButton.style.display = "none";
@@ -332,6 +349,7 @@ function checkLevel5() {
     if (olValid && cssValid) {
       setSuccessFeedback("Gratulacje! Utworzyłeś uporządkowaną listę i zmieniłeś styl numeracji na rzymski.");
       nextLevelButton.style.display = "block"; 
+      soundOnButton();
     } else {
       setErrorFeedback("Upewnij się, że masz uporządkowaną listę <ol> z trzema elementami <li> oraz ustaw styl numeracji na 'upper-roman' w CSS.");
       nextLevelButton.style.display = "none"; 
@@ -363,6 +381,7 @@ function checkLevel6() {
     if (ulValid && cssValid) {
       setSuccessFeedback("Gratulacje! Utworzyłeś nieuporządkowaną listę i zmieniłeś styl ikon na 'circle'.");
       nextLevelButton.style.display = "block"; 
+      soundOnButton();
     } else {
       setErrorFeedback("Upewnij się, że masz nieuporządkowaną listę <ul> z czterema elementami <li> oraz ustaw styl ikon na 'circle' w CSS.");
       nextLevelButton.style.display = "none"; 
@@ -377,6 +396,7 @@ function checkLevel7() {
     if (linkPattern.test(html)) {
       setSuccessFeedback("Brawo! Dodałeś link na stronie.");
       nextLevelButton.style.display = 'block'; 
+      soundOnButton();
     } else {
       setErrorFeedback("Dodaj link HTML za pomocą znacznika <a href=\"\" ></a>. Upewnij się, że atrybut href zawiera adres URL oraz że wewnątrz linku jest tekst.");
       nextLevelButton.style.display = 'none';
@@ -405,6 +425,7 @@ function checkLevel8() {
     if (isValid) {
         setSuccessFeedback("Brawo! Udało Ci się stworzyć poprawny nagłówek!");
         nextLevelButton.style.display = "block"; 
+        soundOnButton();
     } else {
         setErrorFeedback("Sprawdź kod HTML i spróbuj ponownie.");
         nextLevelButton.style.display = "none"; 
@@ -420,6 +441,7 @@ function checkLevel9() {
   if (isValid) {
       setSuccessFeedback("Brawo! Udało Ci się stworzyć co najmniej jedną poprawną sekcję!");
       nextLevelButton.style.display = "block"; 
+      soundOnButton();
   } else {
       setErrorFeedback("Sprawdź kod HTML i spróbuj ponownie. Upewnij się, że masz przynajmniej jedną sekcję.");
       nextLevelButton.style.display = "none"; 
@@ -441,6 +463,7 @@ function checkLevel10() {
   if (allSectionsValid) {
     setSuccessFeedback("Wszystkie sekcje są wypełnione!");
     nextLevelButton.style.display = "block";
+    soundOnButton();
     } else {
       setErrorFeedback("Sprawdź kod, czy wszystkie sekcje są wypełnione poprawnie!");
       nextLevelButton.style.display = "none";  }
@@ -454,6 +477,7 @@ function checkLevel11() {
    if (isFooterIncludes) {
       setSuccessFeedback("Brawo! Stworzyłeś poprawną stopkę!");
       nextLevelButton.style.display = "block"; 
+      soundOnButton();
   } else {
       setErrorFeedback("Sprawdź kod HTML i spróbuj ponownie.");
       nextLevelButton.style.display = "none"; 
@@ -486,6 +510,7 @@ function checkLevel12() {
           if (isNotBlackColor(color)) {
               setSuccessFeedback("Brawo! Udało Ci się ustawić kolor tła w formacie HEX lub RGB.");
               nextLevelButton.style.display = "block"; 
+              soundOnButton();
           } else {
               setErrorFeedback("Kolor czarny jest zabroniony. Wybierz inny kolor.");
               nextLevelButton.style.display = "none"; 
@@ -543,6 +568,7 @@ function checkLevel13() {
   if (isValid) {
       setSuccessFeedback("Brawo! Udało Ci się ustawić wszystkie wymagane właściwości dla body z poprawnymi wartościami.");
       nextLevelButton.style.display = "block"; 
+      soundOnButton();
   } else {
       setErrorFeedback("Sprawdź kod CSS i upewnij się, że sekcja body zawiera poprawne wartości dla margin, padding, font-family oraz background-color.");
       nextLevelButton.style.display = "none"; 
@@ -609,14 +635,13 @@ function checkLevel14() {
       return ruleMatch && rule.isValid(ruleMatch[1].trim());
     });
   });
-
-  // Sprawdzanie i wyświetlanie przycisku
   if (isValid) {
     setSuccessFeedback("Brawo! Udało Ci się ustawić wszystkie wymagane właściwości dla header, section i footer z poprawnymi wartościami.");
-    nextLevelButton.style.display = "block"; // Pokazuje przycisk
+    nextLevelButton.style.display = "block"; 
+    soundOnButton();
   } else {
     setErrorFeedback("Sprawdź kod CSS i upewnij się, że sekcje header, section i footer zawierają poprawne wartości dla wszystkich wymaganych właściwości.");
-    nextLevelButton.style.display = "none"; // Ukrywa przycisk
+    nextLevelButton.style.display = "none"; 
   }
 }
 
@@ -660,6 +685,7 @@ function checkLevel16() {
   if (isValidNav && isValidLi && isValidA) {
     setSuccessFeedback("Brawo! Udało Ci się ustawić style dla nawigacji.");
     nextLevelButton.style.display = "block";
+    soundOnButton();
   } else {
     setErrorFeedback("Sprawdź kod CSS i upewnij się, że ustawiłeś style dla nawigacji.");
     nextLevelButton.style.display = "none";
@@ -690,7 +716,8 @@ function checkLevel17() {
   const isValidTh = thTest.test(css);  
   if (isValidTable && isValidTable2 && isValidTh) {
     setSuccessFeedback("Gratulacje! Ustawiłeś wymagane style nagłówków i tabel.");
-    nextLevelButton.style.display = "block"; 
+    nextLevelButton.style.display = "block";
+    soundOnButton();
   } else {
     setErrorFeedback("Sprawdź kod CSS i upewnij się, że ustawiłeś wszystkie wymagane właściwości i zamknąłeś sekcje klamrami.");
     nextLevelButton.style.display = "none"; 
@@ -708,6 +735,7 @@ function checkLevel18() {
   } else {
     setSuccessFeedback("Brawo! Utworzyłeś formularz z wymaganymi polami i przyciskiem 'Wyślij'.");
     nextLevelButton.style.display = "block";
+    soundOnButton();
   }
 }
 
@@ -740,6 +768,7 @@ function checkLevel19() {
   if (isValidForm && isValidInput && isValidButton) {
     setSuccessFeedback("Gratulacje! Ustawiłeś wymagane style formularza, inputów i przycisków.");
     nextLevelButton.style.display = "block";
+    soundOnButton();
   } else {
     setErrorFeedback("Sprawdź kod CSS i upewnij się, że ustawiłeś wszystkie wymagane właściwości dla formularza, inputów i przycisków.");
     nextLevelButton.style.display = "none";
@@ -757,7 +786,7 @@ function checkLevel20() {
 }
 
   // Funkcja zmieniająca poziom
-  function goToNextLevel() {
+function goToNextLevel() {
     currentLevel++;
     if (currentLevel === 2) {
       setInstructions(currentLevel);
@@ -781,8 +810,8 @@ function checkLevel20() {
       checkLevel7();
     }else if (currentLevel === 8) {
       setInstructions(currentLevel);
-      htmlEditor.setValue(""); // Czyszczenie zawartości HTML
-      cssEditor.setValue(""); // Czyszczenie zawartości CSS
+      htmlEditor.setValue("<header>"); // Czyszczenie zawartości HTML
+      cssEditor.setValue("</header>"); // Czyszczenie zawartości CSS
       checkLevel8(); 
     }else if (currentLevel === 9) {
       setInstructions(currentLevel);
@@ -912,6 +941,54 @@ function checkLevel20() {
     }
       saveToLocalStorage();
   });
+  
+  function openSite(){
+
+    if (currentLevel === 1) {
+      window.open('https://www.w3schools.com/tags/tag_hn.asp', '_blank');
+    } else if (currentLevel === 2) {
+      window.open('https://www.w3schools.com/html/tryit.asp?filename=tryhtml_styles_text-align', '_blank');
+    } else if (currentLevel === 3) {
+      window.open('https://www.w3schools.com/cssref/pr_background-color.php', '_blank');
+    } else if (currentLevel === 4) {
+      window.open('https://www.w3schools.com/tags/tag_img.asp', '_blank');
+    } else if (currentLevel === 5) {
+      window.open('https://www.w3schools.com/html/html_lists.asp', '_blank');
+    } else if (currentLevel === 6) {
+      window.open('https://www.w3schools.com/html/html_lists.asp', '_blank');
+    } else if (currentLevel === 7) {
+      window.open('https://www.w3schools.com/tags/tag_a.asp', '_blank');
+    } else if (currentLevel === 8) {
+      window.open('https://www.w3schools.com/css/css_navbar.asp', '_blank');
+    } else if (currentLevel === 9) {
+      window.open('https://www.w3schools.com/tags/tag_section.asp', '_blank');
+    } else if (currentLevel === 10) {
+      window.open('https://www.w3schools.com/tags/tag_section.asp', '_blank');
+    } else if (currentLevel === 11) {
+      window.open('https://www.w3schools.com/tags/tag_footer.asp', '_blank');
+    } else if (currentLevel === 12) {
+      window.open('https://www.w3schools.com/cssref/pr_background-color.php', '_blank');
+    } else if (currentLevel === 13) {
+      window.open('https://www.w3schools.com/css/css_font.asp', '_blank');
+    } else if (currentLevel === 14) {
+      window.open('https://www.w3schools.com/css/default.asp', '_blank');
+    } else if (currentLevel === 15) {
+      window.open('https://www.w3schools.com/html/html_tables.asp', '_blank');
+    } else if (currentLevel === 16) {
+      window.open('https://www.w3schools.com/css/default.asp', '_blank');
+    } else if (currentLevel === 17) {
+      window.open('https://www.w3schools.com/css/default.asp', '_blank');
+    } else if (currentLevel === 18) {
+      window.open('https://www.w3schools.com/hTml/html_forms.asp', '_blank');
+    } else if (currentLevel === 19) {
+      window.open('https://www.w3schools.com/css/css_form.asp', '_blank');
+    } else if (currentLevel === 20) {
+      document.getElementById('poradnik').style.display = 'none'; // Ukrywa przycisk na poziomie 20
+    } else {
+      console.log('Nieznany poziom');
+    }
+  }
+   
 
   //Funkcje wyświetlające instrukcje dla poszczególnych poziomów
   setInstructions(currentLevel);
@@ -919,26 +996,80 @@ function checkLevel20() {
     if (level === 1) {
       instructions.innerHTML = `
       <h2>Poziom 1: Utwórz nagłówek 1 stopnia</h2>
-      <p>Nagłówek jest podstawową</p>
-      <p>Twoje zadanie to utworzenie nagłówka 1 stopnia (<code>&lt;h1&gt;</code>) w kodzie HTML, pamiętaj o zamknięciu. Wprowadź odpowiedni kod HTML, aby zakończyć poziom.</p>`;
+      <p>Nagłówek jest podstawą</p>
+      <p>Twoje zadanie to utworzenie nagłówka 1 stopnia (<code>&lt;h1&gt;</code>) w kodzie HTML, pamiętaj o zamknięciu. Wprowadź odpowiedni kod HTML, aby zakończyć poziom. Kod HTML zawiera sekcję body więc nie musisz jej dodawać.</p><div class="controls">
+        `;
     
     } else if (level === 2) {
       instructions.innerHTML = `
         <h2>Poziom 2: Wyśrodkowanie tekstu</h2>
-        <p>Twoje zadanie to wyśrodkowanie nagłówka 1 stopnia za pomocą CSS. Użyj odpowiednich właściwości CSS, takich jak <code>text-align: center;</code>, aby to osiągnąć.</p>`;
+        <p>Twoje zadanie to wyśrodkowanie nagłówka 1 stopnia za pomocą CSS. Użyj odpowiednich właściwości CSS, takich jak <code>text-align: center;</code>, aby to osiągnąć.</p>
+                
+`;
     } else if (level === 3) {
       instructions.innerHTML = `
         <h2>Poziom 3: Dodaj tło</h2>
         <p>Zmiana koloru całej strony polega na wprowadzeniu do Arkusza styli właściwości dla znacznika <code>Body</code> będącego ciałem całej strony.</p>
-        <p>Twoje zadanie to dodać tło do strony. Użyj właściwości CSS <code>background-color</code>, aby ustawić tło strony. Możesz użyć zarówno angielskich nazw kolorów, jak i kodów HEX.</p>`;
+        <p>Twoje zadanie to dodać tło do strony. Użyj właściwości CSS <code>background-color</code>, aby ustawić tło strony. Możesz użyć zarówno angielskich nazw kolorów, jak i kodów HEX.</p>
+        `;
     } else if (level === 4) {
       instructions.innerHTML = `
         <h2>Poziom 4: Dodaj obrazek</h2>
-        <p>Twoje zadanie to dodać obrazek do strony. Użyj właściwości html (<code>&lt;img src="linkobrazka"&gt;</code>), aby dodać obrazek do strony, spróbuj dodać na przykład tego kotka: https://tiny.pl/q71p7s-9 </p>`;
+        <p>Twoje zadanie to dodać obrazek do strony. Użyj właściwości html (<code>&lt;img src="linkobrazka"&gt;</code>), aby dodać obrazek do strony, spróbuj dodać na przykład tego słodkiego kotka: <br/><br/> https://tiny.pl/01-nhzw7 </p>
+       `;
     } else if (level === 5) {
       instructions.innerHTML = `
-        <h2>Poziom 5: Uporządkowane listy</h2>
-        <p>Twoje zadanie to dodanie uporządkowanej listy (<code>&lt;ol&gt;</code>) z trzema elementami (<code>&lt;li&gt;</code>) oraz zmiana stylu numeracji na rzymską w CSS (<code>list-style-type: upper-roman;</code>).</p>`;
+  <h2>Poziom 5: Uporządkowane listy</h2>
+  <p>Twoje zadanie to dodanie uporządkowanej listy (<code>&lt;ol&gt;</code>) z co najmniej trzema elementami (<code>&lt;li&gt;</code>) oraz zmiana stylu numeracji na rzymską w CSS (<code>list-style-type: upper-roman;</code> dla znacznika <code>ol</code>).</p>
+  <h3>Jak dodawać listy w HTML?</h3>
+  <p>W HTML możesz tworzyć dwa rodzaje list:</p>
+  <ul>
+    <li><strong>Uporządkowane listy (<code>&lt;ol&gt;</code>):</strong> Listy numerowane, np. 1, 2, 3.</li>
+    <li><strong>Nieuporządkowane listy (<code>&lt;ul&gt;</code>):</strong> Listy z punktami, np. •, ◦, ■.</li>
+  </ul>
+  <h4>Przykład uporządkowanej listy:</h4>
+  <pre>
+    <code>
+&lt;ol&gt;
+  &lt;li&gt;Element pierwszy&lt;/li&gt;
+  &lt;li&gt;Element drugi&lt;/li&gt;
+  &lt;li&gt;Element trzeci&lt;/li&gt;
+&lt;/ol&gt;
+    </code>
+  </pre>
+  <p>Efekt:</p>
+  <ol>
+    <li>Element pierwszy</li>
+    <li>Element drugi</li>
+    <li>Element trzeci</li>
+  </ol>
+  <h4>Zmiana stylu numeracji w CSS:</h4>
+  <pre>
+    <code>
+ol {
+  list-style-type: upper-roman;
+}
+    </code>
+  </pre>
+  <p>Efekt: I, II, III</p>
+  <h4>Przykład nieuporządkowanej listy:</h4>
+  <pre>
+    <code>
+&lt;ul&gt;
+  &lt;li&gt;Element pierwszy&lt;/li&gt;
+  &lt;li&gt;Element drugi&lt;/li&gt;
+  &lt;li&gt;Element trzeci&lt;/li&gt;
+&lt;/ul&gt;
+    </code>
+  </pre>
+  <p>Efekt:</p>
+  <ul>
+    <li>Element pierwszy</li>
+    <li>Element drugi</li>
+    <li>Element trzeci</li>
+  </ul>
+`;
+
     } else if (level === 6) {
       instructions.innerHTML = `
         <h2>Poziom 6: Nieuporządkowane listy z ikonami</h2>
@@ -947,12 +1078,13 @@ function checkLevel20() {
     } else if (level === 7) {
       instructions.innerHTML = `
         <h2>Poziom 7: Dodawanie linków</h2>
-        <p>Dodaj link na stronie za pomocą znacznika <code>&lt;a href=""&gt;</code>. Link może prowadzić do dowolnej strony, np. Google. Pamiętaj, aby znacznik był widoczny musisz wprowadzić jakiś tekst pomiędzy znacznikami <code>&lta&gt</code> !</p>`;
+        <p>Dodaj link na stronie za pomocą znacznika <code>&lt;a href="(twój link)"&gt;</code>. Link może prowadzić do dowolnej strony, np. Google. Pamiętaj, aby znacznik był widoczny musisz wprowadzić jakiś tekst pomiędzy znacznikami <code>&lta&gt</code> !</p>
+        `;
     }else if(level === 8){
       instructions.innerHTML = `
     <h2>Poziom 8: Pasek nawigacji</h2>
     <p>Zabawa się skończyła! Bierzemy się za pisanie porządnej strony internetowej z prawdziwego zdarzenia.</p>
-    <p>W tym zadaniu musisz stworzyć element <code>&lt;header&gt;</code>, który będzie zawierał pasek nawigacji, czyli część strony służącą do nawigacji i przechodzenia po poszczególnych stronach z dowolną liczbą linków, na przykład:</p>
+    <p>W tym zadaniu musisz stworzyć pasek nawigacji wewnątrz znacznika <code>&lt;header&gt;</code>. Pasek nawigacji, czyli część strony służącą do nawigacji i przechodzenia po poszczególnych stronach, na przykład:</p>
     <pre>
         <code>
 &lt;nav&gt;
@@ -1337,8 +1469,8 @@ button:hover {
   updatePreview();
 
   //testowanie
-  console.log(currentLevel)
+  console.log(currentLevel);
   console.log(nextLevelButton);
   console.log("Przycisk widoczny:", nextLevelButton.style.display);
-
+  
 });
