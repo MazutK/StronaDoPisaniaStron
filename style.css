@@ -213,7 +213,7 @@ textarea {
 
 
 footer {
-  background-color: #273322; /* Ciemny zielony dla stopki */
+  background-color: #273322;
   color: #FFFFFF;
   position: fixed; 
   bottom: -7.2rem; 
@@ -223,16 +223,15 @@ footer {
   z-index: 999999;
   text-align: center;
   padding: 1rem;
-  /*background: radial-gradient(circle, rgba(163,180,34,1) 0%, rgba(2,120,0,1) 76%);*/
   background-color: #2E332B;
-  transition: background-color 0.5s ease, bottom 0.5s ease; /* Połączone przejścia */
+  transition: background-color 0.5s ease, bottom 0.5s ease; 
 
 
 }
 
 footer:hover {
   bottom: 0; 
-  background-color: #3D5D27; /* Jaśniejszy odcień po najechaniu */
+  background-color: #3D5D27; 
   color:white;
   text-decoration: none;
 
@@ -256,7 +255,7 @@ footer:hover #arrow {
 }
 
 #instructions {
-  background-color: #273322; /* Najciemniejszy zielony dla sekcji instrukcji */
+  background-color: #273322; 
   color: #FFFFFF;
   padding: 1rem;
   border-radius: 10px;
@@ -290,10 +289,7 @@ footer:hover #arrow {
   cursor: pointer;
   animation: pulse 1.5s ease-out infinite;
 }
-#output{
-  
 
-}
 #reset {
   display: block;
   padding: 0.5rem 1rem;
