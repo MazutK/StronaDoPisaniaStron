@@ -197,7 +197,12 @@ footer {
 footer:hover {
   bottom: 0; 
   background-color: #48682D; /* Jaśniejszy odcień po najechaniu */
+  color:white;
+  text-decoration: none;
 
+}
+a{
+  color:white;
 }
 
 footer:hover #arrow {
