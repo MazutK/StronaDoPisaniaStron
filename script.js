@@ -192,22 +192,35 @@ function resetGame() {
     if (isFullScreen) {
         // Przełączanie na pełny ekran
         previewStyle.position = 'fixed';
-        previewStyle.top = '5rem';
+        if (window.innerWidth < 768) {
+          // Dostosowanie dla mniejszych okien
+          previewStyle.top = '0';
+      } else {
+          // Normalne zachowanie dla większych okien
+          previewStyle.top = '5rem';
+      }
         previewStyle.left = '0';
-        previewStyle.width = '100vw';  
-        previewStyle.height = '100em';  
+        previewStyle.width = '100%';  
+        previewStyle.height = '100%';  
         previewStyle.margin = '0';
         previewStyle.padding = '0';
-        previewStyle.zIndex = '9999';  
-        iframe.style.width = '100%';
-        iframe.style.height = '100%';  
+        previewStyle.zIndex = '10';  
+        iframe.style.width = '85%';
+        iframe.style.height = '85%';  
         expandButton.textContent = 'Zamknij podgląd pełnego ekranu';
     } else {
       //Minimalizowanie do poprzedniego stanu
         previewStyle.position = '';
         previewStyle.top = '';
         previewStyle.left = '';
-        previewStyle.width = '30%';
+        // Sprawdzanie szerokości okna
+        if (window.innerWidth < 768) {
+          // Dostosowanie dla mniejszych okien
+          previewStyle.width = '100%';
+      } else {
+          // Normalne zachowanie dla większych okien
+          previewStyle.width = '30%';
+      }
         previewStyle.height = '800px';  
         previewStyle.margin = '';
         previewStyle.padding = '';
