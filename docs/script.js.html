@@ -1,0 +1,1941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: script.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: script.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Wykonuje inicjalizację strony po załadowaniu DOM.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+  /**
+   * Pole tekstowe do wprowadzania kodu HTML.
+   * @type {HTMLElement}
+   */
+  const htmlCode = document.getElementById('html-code');
+
+  /**
+   * Pole tekstowe do wprowadzania kodu CSS.
+   * @type {HTMLElement}
+   */
+  const cssCode = document.getElementById('css-code');
+
+  /**
+   * Element ramki podglądu.
+   * @type {HTMLIFrameElement}
+   */
+  const outputFrame = document.getElementById('output');
+
+  /**
+   * Element informacji zwrotnej.
+   * @type {HTMLElement}
+   */
+  const feedback = document.getElementById('feedback');
+
+  /**
+   * Przycisk przejścia do kolejnego poziomu.
+   * @type {HTMLElement}
+   */
+  const nextLevelButton = document.getElementById('next-level');
+
+  /**
+   * Sekcja z instrukcjami.
+   * @type {HTMLElement}
+   */
+  const instructions = document.getElementById('instructions');
+
+  /**
+   * Przycisk resetowania gry.
+   * @type {HTMLElement}
+   */
+  const reset = document.getElementById('reset');
+
+  /**
+   * Przycisk pełnego ekranu.
+   * @type {HTMLElement}
+   */
+  const expandButton = document.getElementById('fullscreenButton');
+
+  /**
+   * Sekcja podglądu.
+   * @type {HTMLElement}
+   */
+  const previewSection = document.getElementById('preview');
+
+  /**
+   * Element ramki iframe dla podglądu.
+   * @type {HTMLIFrameElement}
+   */
+  const iframe = document.getElementById('output');
+
+  /**
+   * Przycisk otwierający poradnik.
+   * @type {HTMLElement}
+   */
+  const poradnik = document.getElementById('Poradnik');
+
+  /**
+   * Element odtwarzający dźwięk przy kliknięciu.
+   * @type {HTMLAudioElement}
+   */
+  const buttonSound = document.getElementById('button-sound');
+
+  /**
+   * Obsługuje kliknięcie przycisku "Poradnik".
+   */
+  poradnik.addEventListener('click',openSite);
+
+  /**
+   * Określa, czy podgląd jest w trybie pełnoekranowym.
+   * @type {boolean}
+   */
+  let isFullScreen = false;
+  /**
+   * Rejestruje kliknięcie przycisku "Przejdź do kolejnego poziomu".
+   */
+  nextLevelButton.addEventListener('click', goToNextLevel);
+
+  /**
+   * Rejestruje kliknięcie przycisku resetu gry.
+   */
+  reset.addEventListener('click', resetGame);
+
+   /**
+   * Rejestruje kliknięcie przycisku pełnego ekranu.
+   */
+  expandButton.addEventListener('click', toggleFullScreen);
+
+  let currentLevel = localStorage.getItem('currentLevel');
+  currentLevel = currentLevel ? parseInt(currentLevel, 10) : 1;  // Jeśli brak, ustaw 1 jako domyślny poziom
+  /**
+   * Zapisywanie do localstorage
+   * 
+   */
+  function saveCurrentLevelToLocalStorage() {
+    localStorage.setItem('currentLevel', currentLevel);
+  }
+/**
+   * Inicjalizacja CodeMirror dla HTML
+   * 
+   */
+  const htmlEditor = CodeMirror.fromTextArea(htmlCode, {
+    mode: 'xml',
+    theme: 'dracula',
+    lineNumbers: true,
+    tabSize: 2,
+    value: `&lt;!DOCTYPE html>
+              &lt;html lang="en">
+                &lt;head>
+                  &lt;meta charset="UTF-8">
+                  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  &lt;title>My Page&lt;/title>
+                &lt;/head>
+                &lt;body>
+                  &lt;h1>Witaj na stronie!&lt;/h1>
+                  &lt;!-- Twoje zadanie -->
+                &lt;/body>
+              &lt;/html>`
+  });
+/**
+   * 
+   * Inicjalizacja CodeMirror dla CSS
+   */
+  // 
+  const cssEditor = CodeMirror.fromTextArea(cssCode, {
+    mode: 'css',
+    theme: 'dracula',
+    lineNumbers: true,
+    tabSize: 2,
+    value: ` `
+  });
+/**
+   * Funkcja efektu przy pojawieniu się przycisku
+   * 
+   */
+  function soundOnButton() {
+    nextLevelButton.classList.add('show'); 
+    buttonSound.play().catch((error) => {
+      console.error("Nie udało się odtworzyć dźwięku:", error);
+    });
+  }
+  
+/**
+   * Funkcja aktualizująca podgląd
+   * 
+   */
+function updatePreview() {
+    const html = htmlEditor.getValue();
+    const css = `&lt;style>${cssEditor.getValue()}&lt;/style>`;
+    const output = `${css}${html}`;
+
+    const iframeDoc = outputFrame.contentDocument || outputFrame.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(output);
+    iframeDoc.close();
+  }
+  /**
+   * Funkcja do czyszczenia kodu wpisanego przez użytkownika
+   * 
+   *//**
+ * Czyści kod, usuwając zbędne spacje i konwertując go na małe litery.
+ * @param {string} code - Kod do oczyszczenia.
+ * @returns {string} - Oczyszczony kod.
+ */
+function cleanCode(code) {
+  return code
+    .replace(/^\s+/gm, '') // Usuwa nadmiarowe spacje na początku linii
+    .replace(/\s*{\s*/g, '{') // Usuwa spacje wokół `{`
+    .replace(/\s*}\s*/g, '}') // Usuwa spacje wokół `}`
+    .replace(/\s*:\s*/g, ':') // Usuwa spacje wokół `:`
+    .replace(/\s*;\s*/g, ';') // Usuwa spacje wokół `;`
+    .toLowerCase();           // Konwertuje na małe litery
+}
+
+/**
+* Zapisuje aktualne dane (HTML, CSS, poziom gry) do localStorage.
+*/
+function saveToLocalStorage() {
+  localStorage.setItem('htmlCode', htmlEditor.getValue());
+  localStorage.setItem('cssCode', cssEditor.getValue());
+  localStorage.setItem('currentLevel', currentLevel);
+}
+
+/**
+* Ładuje dane (HTML, CSS) z localStorage i ustawia je w edytorach.
+*/
+function loadFromLocalStorage() {
+  const savedHtmlCode = localStorage.getItem('htmlCode');
+  const savedCssCode = localStorage.getItem('cssCode');
+
+  if (savedHtmlCode) {
+      htmlEditor.setValue(savedHtmlCode);
+  }
+  if (savedCssCode) {
+      cssEditor.setValue(savedCssCode);
+  }
+}
+
+loadFromLocalStorage();
+
+/**
+* Ustawia komunikat o sukcesie w sekcji informacji zwrotnej.
+* @param {string} message - Wiadomość do wyświetlenia.
+*/
+function setSuccessFeedback(message) {
+  const feedback = document.getElementById("feedback");
+  feedback.textContent = message; 
+  feedback.classList.add("success"); 
+  feedback.classList.remove("error"); 
+}
+
+/**
+* Ustawia komunikat o błędzie w sekcji informacji zwrotnej.
+* @param {string} message - Wiadomość do wyświetlenia.
+*/
+function setErrorFeedback(message) {
+  const feedback = document.getElementById("feedback");
+  feedback.textContent = message; 
+  feedback.classList.add("error"); 
+  feedback.classList.remove("success"); 
+}
+
+/**
+* Resetuje grę, usuwa dane z localStorage i wywołuje animację okna potwierdzenia.
+*/
+function resetGame() {
+  const swalWithBootstrapButtons = Swal.mixin({
+      customClass: {
+          confirmButton: "btn btn-success",
+          cancelButton: "btn btn-danger",
+      },
+      buttonsStyling: true
+  });
+  swalWithBootstrapButtons.fire({
+      title: "Czy jesteś pewien?",
+      text: "Nie będziesz w stanie przywrócić twojej pracy!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Tak, chcę usunąć!",
+      cancelButtonText: "Nie, cofnij!",
+      reverseButtons: true
+  }).then((result) => {
+      if (result.isConfirmed) {
+          swalWithBootstrapButtons.fire({
+              title: "Usuwanie zakończone!",
+              text: "Zawartość została wyzerowana.",
+              icon: "success"
+          });
+          localStorage.clear();
+          currentLevel = 1;
+          saveCurrentLevelToLocalStorage();
+          htmlEditor.setValue(``);
+          cssEditor.setValue(``);
+          setInstructions(1);
+          nextLevelButton.style.display = "none";
+          feedback.textContent = "";
+          updatePreview();
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+          swalWithBootstrapButtons.fire({
+              title: "Anulowano usuwanie",
+              text: "Twoja praca jest bezpieczna :)",
+              icon: "error"
+          });
+      }
+  });
+}
+
+/**
+* Przełącza tryb pełnoekranowego podglądu sekcji podglądu.
+*/
+function toggleFullScreen() {
+  const previewSection = document.getElementById('preview');
+  const iframe = document.getElementById('output');
+  const expandButton = document.getElementById('fullscreenButton');
+  const previewStyle = previewSection.style;
+
+  isFullScreen = !isFullScreen;
+
+  if (isFullScreen) {
+      previewStyle.position = 'fixed';
+      if (window.innerWidth &lt; 768) {
+          previewStyle.top = '0';
+      } else {
+          previewStyle.top = '5rem';
+      }
+      previewStyle.left = '0';
+      previewStyle.width = '100%';  
+      previewStyle.height = '100%';  
+      previewStyle.margin = '0';
+      previewStyle.padding = '0';
+      previewStyle.zIndex = '10';  
+      iframe.style.width = '85%';
+      iframe.style.height = '85%';  
+      expandButton.textContent = 'Zamknij podgląd pełnego ekranu';
+  } else {
+      previewStyle.position = '';
+      previewStyle.top = '';
+      previewStyle.left = '';
+      if (window.innerWidth &lt; 768) {
+          previewStyle.width = '100%';
+      } else {
+          previewStyle.width = '30%';
+      }
+      previewStyle.height = '800px';  
+      previewStyle.margin = '';
+      previewStyle.padding = '';
+      previewStyle.zIndex = '';
+      iframe.style.width = '90%';
+      iframe.style.height = '650px';  
+      iframe.style.display = 'block';
+      expandButton.textContent = 'Pełny ekran';  
+  }
+}
+
+
+/**
+ * Obsługuje kliknięcie przycisku pobierania zawartości HTML i CSS.
+ */
+document.getElementById('downloadBtn').addEventListener('click', function() {
+  /**
+   * Pobiera zawartość edytorów HTML i CSS.
+   * @type {string}
+   */
+  const htmlContent = htmlEditor.getValue();
+
+  /**
+   * Pobiera zawartość edytorów CSS.
+   * @type {string}
+   */
+  const cssContent = cssEditor.getValue();
+  
+  /**
+   * Tworzy plik i rozpoczyna jego pobieranie.
+   * @param {string} filename - Nazwa pliku do pobrania.
+   * @param {string} content - Zawartość pliku.
+   */
+  function downloadFile(filename, content) {
+      const blob = new Blob([content], { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+  }
+  
+  // Tworzenie i pobieranie pliku HTML
+  downloadFile('index.html', htmlContent);
+  
+  // Tworzenie i pobieranie pliku CSS
+  downloadFile('styles.css', cssContent);
+});
+
+
+
+/**
+ * Sprawdza poprawność poziomu 1 (nagłówek H1).
+ */
+function checkLevel1() {
+  /**
+   * Kod HTML z edytora.
+   * @type {string}
+   */
+  const html = htmlEditor.getValue();
+
+  /**
+   * Wzorzec dla nagłówka H1.
+   * @type {RegExp}
+   */
+  const h1Pattern = /&lt;h1>.*&lt;\/h1>/s;
+
+  if (h1Pattern.test(html)) {
+    setSuccessFeedback("Gratulacje! Użyłeś nagłówka 1 stopnia.");
+    nextLevelButton.style.display = "block";
+    soundOnButton();
+  } else {
+    setErrorFeedback("Utwórz nagłówek 1 stopnia (h1) w ciele dokumentu.");
+    nextLevelButton.style.display = 'none'; 
+  }
+}
+
+/**
+ * Sprawdza poprawność poziomu 2 (wyśrodkowanie tekstu w CSS).
+ */
+function checkLevel2() {
+  /**
+   * Kod CSS z edytora.
+   * @type {string}
+   */
+  const css = cleanCode(cssEditor.getValue());
+
+  if (css.includes('h1{text-align:center;}')) {
+    setSuccessFeedback("Gratulacje! Wyśrodkowałeś tekst.");
+    nextLevelButton.style.display = 'block'; 
+    soundOnButton();
+  } else {
+    setErrorFeedback("Wyśrodkuj tekst za pomocą CSS dodając odpowiedni znacznik.");
+    nextLevelButton.style.display = 'none'; 
+  }
+}
+
+/**
+ * Sprawdza poprawność poziomu 3 (kolor tła w CSS).
+ */
+function checkLevel3() {
+  /**
+   * Kod CSS z edytora.
+   * @type {string}
+   */
+  const css = cleanCode(cssEditor.getValue());
+
+  /**
+   * Wzorzec do sprawdzenia właściwości background-color w sekcji body.
+   * @type {RegExp}
+   */
+  const bodyBackgroundColorTest = /body\s*\{[^}]*background-color\s*:\s*([^;]+)\s*;[^}]*\}/;
+
+  /**
+   * Wynik dopasowania koloru w CSS.
+   * @type {RegExpMatchArray | null}
+   */
+  const match = css.match(bodyBackgroundColorTest);
+
+  /**
+   * Sprawdza, czy dany kolor jest w poprawnym formacie (HEX lub RGB).
+   * @param {string} color - Kolor do sprawdzenia.
+   * @returns {boolean} - Czy kolor jest poprawny.
+   */
+  function isValidColor(color) {
+    const colorHexRegex = /^#[0-9a-fA-F]{3,6}$/;  
+    const colorRgbRegex = /^rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)$/;  
+    return colorHexRegex.test(color) || colorRgbRegex.test(color);
+  }
+
+  /**
+   * Sprawdza, czy kolor nie jest czarny (zabroniony).
+   * @param {string} color - Kolor do sprawdzenia.
+   * @returns {boolean} - Czy kolor nie jest czarny.
+   */
+  function isNotBlackColor(color) {
+    const colorHexRegex = /^#(?:000000|000)$/; 
+    const colorRgbRegex = /^rgb\(\s*0\s*,\s*0\s*,\s*0\s*\)$/; 
+    return !(colorHexRegex.test(color) || colorRgbRegex.test(color));
+  }
+
+  if (match) {
+    const color = match[1].trim();
+
+    if (isValidColor(color)) {
+      if (isNotBlackColor(color)) {
+        setSuccessFeedback("Brawo! Udało Ci się ustawić kolor tła w formacie HEX lub RGB.");
+        nextLevelButton.style.display = "block"; 
+        soundOnButton();
+      } else {
+        setErrorFeedback("Kolor czarny jest zabroniony. Wybierz inny kolor.");
+        nextLevelButton.style.display = "none"; 
+      }
+    } else {
+      setErrorFeedback("Kolor tła jest niepoprawny. Upewnij się, że używasz koloru w formacie HEX (#ff0000) lub RGB (rgb(255, 0, 0)).");
+      nextLevelButton.style.display = "none"; 
+    }
+  } else {
+    setErrorFeedback("Sprawdź kod CSS i upewnij się, że sekcja body zawiera właściwość background-color w formacie HEX lub RGB.");
+    nextLevelButton.style.display = "none"; 
+  }
+}
+
+/**
+ * Sprawdza poprawność poziomu 4 (dodanie obrazka).
+ */
+function checkLevel4() {
+  /**
+   * Kod HTML z edytora.
+   * @type {string}
+   */
+  const html = cleanCode(htmlEditor.getValue());
+
+  /**
+   * Wzorzec dla znacznika obrazu &lt;img>.
+   * @type {RegExp}
+   */
+  const imgPattern = /&lt;img\s+src=["'][^"']*["'][^>]*>/;
+
+  if (imgPattern.test(html)) {
+    setSuccessFeedback("Gratulacje! Dodałeś obrazek do strony.");
+    nextLevelButton.style.display = "block";
+    soundOnButton();
+  } else {
+    setErrorFeedback("Dodaj obrazek za pomocą znacznika &lt;img src=\"\" /> w HTML. Upewnij się, że tag &lt;img> ma prawidłowy atrybut src.");
+    nextLevelButton.style.display = "none";
+  }
+}
+
+/**
+ * Sprawdza poprawność poziomu 5 (lista uporządkowana i styl CSS).
+ */
+function checkLevel5() {
+  /**
+   * Kod HTML z edytora.
+   * @type {string}
+   */
+  const html = cleanCode(htmlEditor.getValue());
+
+  /**
+   * Kod CSS z edytora.
+   * @type {string}
+   */
+  const css = cleanCode(cssEditor.getValue());
+
+  /**
+   * Wzorzec dla listy uporządkowanej z trzema elementami.
+   * @type {RegExp}
+   */
+  const olPattern = /&lt;ol>\s*&lt;li>.*&lt;\/li>\s*&lt;li>.*&lt;\/li>\s*&lt;li>.*&lt;\/li>\s*&lt;\/ol>/s;
+
+  /**
+   * Czy lista spełnia wymagania.
+   * @type {boolean}
+   */
+  const olValid = olPattern.test(html);
+
+  /**
+   * Czy CSS zawiera styl numeracji "upper-roman".
+   * @type {boolean}
+   */
+  const cssValid = /list-style-type:\s*upper-roman\s*;/.test(css);
+
+  /**
+   * Sprawdza, czy wszystkie bloki CSS mają odpowiednio zamknięte klamry.
+   * @param {string} cssCode - Kod CSS do sprawdzenia.
+   * @returns {boolean} - Czy struktura CSS jest poprawna.
+   */
+  function validateCSSBlocks(cssCode) {
+    const openBraces = (cssCode.match(/\{/g) || []).length;
+    const closeBraces = (cssCode.match(/\}/g) || []).length;
+    return openBraces === closeBraces;
+  }
+
+  const isValidStructure = validateCSSBlocks(css);
+
+  if (!isValidStructure) {
+    setErrorFeedback("Upewnij się, że wszystkie sekcje są poprawnie zamknięte klamrami.");
+    nextLevelButton.style.display = "none";
+    return;
+  }
+
+  if (olValid &amp;&amp; cssValid) {
+    setSuccessFeedback("Gratulacje! Utworzyłeś uporządkowaną listę i zmieniłeś styl numeracji na rzymski.");
+    nextLevelButton.style.display = "block"; 
+    soundOnButton();
+  } else {
+    setErrorFeedback("Upewnij się, że masz uporządkowaną listę &lt;ol> z trzema elementami &lt;li> oraz ustaw styl numeracji na 'upper-roman' w CSS.");
+    nextLevelButton.style.display = "none"; 
+  }
+}
+
+  /**
+ * Sprawdza poprawność poziomu 6 (lista nieuporządkowana z czterema elementami &lt;li> i stylem 'circle').
+ */
+function checkLevel6() {
+  /**
+   * Kod z edytora HTML.
+   * @type {string}
+   */
+  const html = cleanCode(htmlEditor.getValue()); 
+
+  /**
+   * Kod z edytora CSS.
+   * @type {string}
+   */
+  const css = cleanCode(cssEditor.getValue()); 
+  
+  /**
+   * Wzorzec dla nieuporządkowanej listy z czterema elementami &lt;li>.
+   * @type {RegExp}
+   */
+  const ulPattern = /&lt;ul>\s*&lt;li>.*&lt;\/li>\s*&lt;li>.*&lt;\/li>\s*&lt;li>.*&lt;\/li>\s*&lt;li>.*&lt;\/li>\s*&lt;\/ul>/s;
+
+  /**
+   * Czy lista spełnia wymagania.
+   * @type {boolean}
+   */
+  const ulValid = ulPattern.test(html);
+
+  /**
+   * Czy CSS zawiera styl 'circle' dla listy.
+   * @type {boolean}
+   */
+  const cssValid = /list-style-type:\s*circle\s*;/.test(css);
+
+  /**
+   * Sprawdza, czy wszystkie sekcje CSS mają odpowiednio zamknięte klamry.
+   * @param {string} cssCode - Kod CSS do sprawdzenia.
+   * @returns {boolean} - Czy struktura CSS jest poprawna.
+   */
+  function validateCSSBlocks(cssCode) {
+    const openBraces = (cssCode.match(/\{/g) || []).length;
+    const closeBraces = (cssCode.match(/\}/g) || []).length;
+    return openBraces === closeBraces;
+  }
+
+  const isValidStructure = validateCSSBlocks(css);
+
+  if (!isValidStructure) {
+    setErrorFeedback("Upewnij się, że wszystkie sekcje są poprawnie zamknięte klamrami.");
+    nextLevelButton.style.display = "none";
+    return;
+  }
+
+  if (ulValid &amp;&amp; cssValid) {
+    setSuccessFeedback("Gratulacje! Utworzyłeś nieuporządkowaną listę i zmieniłeś styl ikon na 'circle'.");
+    nextLevelButton.style.display = "block"; 
+    soundOnButton();
+  } else {
+    setErrorFeedback("Upewnij się, że masz nieuporządkowaną listę &lt;ul> z czterema elementami &lt;li> oraz ustaw styl ikon na 'circle' w CSS.");
+    nextLevelButton.style.display = "none"; 
+  }
+}
+
+/**
+ * Sprawdza poprawność poziomu 7 (dodanie poprawnego linku HTML).
+ */
+function checkLevel7() {
+  /**
+   * Kod z edytora HTML.
+   * @type {string}
+   */
+  const html = cleanCode(htmlEditor.getValue()); 
+
+  /**
+   * Wzorzec dla poprawnego linku &lt;a>.
+   * @type {RegExp}
+   */
+  const linkPattern = /&lt;a\s+href=["'][^"']*["'][^>]*>.+&lt;\/a>/;
+
+  if (linkPattern.test(html)) {
+    setSuccessFeedback("Brawo! Dodałeś link na stronie.");
+    nextLevelButton.style.display = 'block'; 
+    soundOnButton();
+  } else {
+    setErrorFeedback("Dodaj link HTML za pomocą znacznika &lt;a href=\"\" >&lt;/a>. Upewnij się, że atrybut href zawiera adres URL oraz że wewnątrz linku jest tekst.");
+    nextLevelButton.style.display = 'none';
+  }
+}
+
+/**
+ * Sprawdza poprawność poziomu 8 (stworzenie struktury nagłówka z sekcjami HTML).
+ */
+function checkLevel8() {
+  /**
+   * Kod z edytora HTML.
+   * @type {string}
+   */
+  const currentHTML = htmlEditor.getValue();
+
+  /**
+   * Wzorce dla wymaganych elementów HTML (header, nav, ul, li, a, h1, p).
+   * @type {RegExp}
+   */
+  const headerTest = /&lt;header>[\s\S]*&lt;\/header>/;
+  const navTest = /&lt;nav>[\s\S]*&lt;\/nav>/;
+  const ulTest = /&lt;ul>[\s\S]*&lt;\/ul>/;
+  const liTest = /&lt;li>[\s\S]*&lt;\/li>/;
+  const aTest = /&lt;a href="[^"]+">[\s\S]*&lt;\/a>/;
+  const h1Test = /&lt;h1>[\s\S]*&lt;\/h1>/;
+  const pTest = /&lt;p>[\s\S]*&lt;\/p>/;
+
+  /**
+   * Sprawdza, czy wszystkie wymagane elementy HTML istnieją w kodzie.
+   * @type {boolean}
+   */
+  const isValid = headerTest.test(currentHTML) &amp;&amp;
+    navTest.test(currentHTML) &amp;&amp;
+    ulTest.test(currentHTML) &amp;&amp;
+    liTest.test(currentHTML) &amp;&amp;
+    aTest.test(currentHTML) &amp;&amp;
+    h1Test.test(currentHTML) &amp;&amp;
+    pTest.test(currentHTML);
+
+  if (isValid) {
+    setSuccessFeedback("Brawo! Udało Ci się stworzyć poprawny nagłówek!");
+    nextLevelButton.style.display = "block"; 
+    soundOnButton();
+  } else {
+    setErrorFeedback("Sprawdź kod HTML i spróbuj ponownie.");
+    nextLevelButton.style.display = "none"; 
+  }
+}
+
+/**
+ * Sprawdza poprawność poziomu 9 (co najmniej jedna sekcja HTML).
+ */
+function checkLevel9() {
+  /**
+   * Kod z edytora HTML.
+   * @type {string}
+   */
+  const currentHTML = htmlEditor.getValue();
+
+  /**
+   * Wzorzec dla sekcji HTML.
+   * @type {RegExp}
+   */
+  const sectionTest = /&lt;section[^>]*>[\s\S]*&lt;\/section>/g;
+
+  /**
+   * Dopasowane sekcje HTML.
+   * @type {Array&lt;string> | null}
+   */
+  const sections = currentHTML.match(sectionTest);
+
+  /**
+   * Czy kod zawiera co najmniej jedną sekcję HTML.
+   * @type {boolean}
+   */
+  const isValid = sections &amp;&amp; sections.length >= 1;
+
+  if (isValid) {
+    setSuccessFeedback("Brawo! Udało Ci się stworzyć co najmniej jedną poprawną sekcję!");
+    nextLevelButton.style.display = "block"; 
+    soundOnButton();
+  } else {
+    setErrorFeedback("Sprawdź kod HTML i spróbuj ponownie. Upewnij się, że masz przynajmniej jedną sekcję.");
+    nextLevelButton.style.display = "none"; 
+  }
+}
+
+/**
+ * Sprawdza poprawność poziomu 10 (wszystkie sekcje wypełnione).
+ */
+function checkLevel10() {
+  /**
+   * Parsuje kod HTML do obiektu DOM.
+   * @type {Document}
+   */
+  const currentHTML = new DOMParser().parseFromString(htmlEditor.getValue(), 'text/html');
+
+  /**
+   * Lista wszystkich sekcji w dokumencie.
+   * @type {NodeListOf&lt;HTMLElement>}
+   */
+  const sections = currentHTML.querySelectorAll('section'); 
+
+  let allSectionsValid = true;
+
+  sections.forEach((section) => {
+    if (section.innerHTML.trim() === "") {
+      allSectionsValid = false;
+    }
+  });
+
+  if (allSectionsValid) {
+    setSuccessFeedback("Wszystkie sekcje są wypełnione!");
+    nextLevelButton.style.display = "block";
+    soundOnButton();
+  } else {
+    setErrorFeedback("Sprawdź kod, czy wszystkie sekcje są wypełnione poprawnie!");
+    nextLevelButton.style.display = "none"; 
+  }
+}
+
+/**
+ * Sprawdza poprawność poziomu 11 (stopka HTML).
+ */
+function checkLevel11() {
+  /**
+   * Kod z edytora HTML.
+   * @type {string}
+   */
+  const currentHTML = htmlEditor.getValue();
+
+  /**
+   * Czy kod zawiera poprawną strukturę stopki HTML.
+   * @type {boolean}
+   */
+  const isFooterIncludes = currentHTML.includes('&lt;footer>') &amp;&amp; currentHTML.includes('&lt;/footer>');
+
+  if (isFooterIncludes) {
+    setSuccessFeedback("Brawo! Stworzyłeś poprawną stopkę!");
+    nextLevelButton.style.display = "block"; 
+    soundOnButton();
+  } else {
+    setErrorFeedback("Sprawdź kod HTML i spróbuj ponownie.");
+    nextLevelButton.style.display = "none"; 
+  }
+}
+
+/**
+ * Sprawdza poprawność poziomu 12 (kolor tła w CSS).
+ */
+function checkLevel12() {
+  /**
+   * Kod z edytora CSS.
+   * @type {string}
+   */
+  const css = cleanCode(cssEditor.getValue());
+
+  /**
+   * Wzorzec dla background-color w sekcji body.
+   * @type {RegExp}
+   */
+  const bodyBackgroundColorTest = /body\s*\{[^}]*background-color\s*:\s*([^;]+)\s*;[^}]*\}/;
+
+  /**
+   * Dopasowanie koloru w CSS.
+   * @type {RegExpMatchArray | null}
+   */
+  const match = css.match(bodyBackgroundColorTest);
+
+  /**
+   * Sprawdza, czy dany kolor jest w poprawnym formacie (HEX lub RGB).
+   * @param {string} color - Kolor do sprawdzenia.
+   * @returns {boolean} - Czy kolor jest poprawny.
+   */
+  function isValidColor(color) {
+      const colorHexRegex = /^#[0-9a-fA-F]{3,6}$/;  
+      const colorRgbRegex = /^rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)$/;  
+      return colorHexRegex.test(color) || colorRgbRegex.test(color);
+  }
+
+  /**
+   * Sprawdza, czy kolor nie jest czarny (zabroniony).
+   * @param {string} color - Kolor do sprawdzenia.
+   * @returns {boolean} - Czy kolor nie jest czarny.
+   */
+  function isNotBlackColor(color) {
+      const colorHexRegex = /^#(?:000000|000)$/; 
+      const colorRgbRegex = /^rgb\(\s*0\s*,\s*0\s*,\s*0\s*\)$/; 
+      return !(colorHexRegex.test(color) || colorRgbRegex.test(color));
+  }
+
+  if (match) {
+      const color = match[1].trim();
+
+      if (isValidColor(color)) {
+          if (isNotBlackColor(color)) {
+              setSuccessFeedback("Brawo! Udało Ci się ustawić kolor tła w formacie HEX lub RGB.");
+              nextLevelButton.style.display = "block"; 
+              soundOnButton();
+          } else {
+              setErrorFeedback("Kolor czarny jest zabroniony. Wybierz inny kolor.");
+              nextLevelButton.style.display = "none"; 
+          }
+      } else {
+          setErrorFeedback("Kolor tła jest niepoprawny. Upewnij się, że używasz koloru w formacie HEX (#ff0000) lub RGB (rgb(255, 0, 0)).");
+          nextLevelButton.style.display = "none"; 
+      }
+  } else {
+      setErrorFeedback("Sprawdź kod CSS i upewnij się, że sekcja body zawiera właściwość background-color w formacie HEX lub RGB.");
+      nextLevelButton.style.display = "none"; 
+  }
+}
+
+/**
+ * Sprawdza poprawność poziomu 13 (wszystkie wymagane właściwości w sekcji body CSS).
+ */
+function checkLevel13() {
+  /**
+   * Kod z edytora CSS.
+   * @type {string}
+   */
+  const currentCSS = cleanCode(cssEditor.getValue());
+
+  /**
+   * Wzorzec dla sekcji body z wymaganymi właściwościami.
+   * @type {RegExp}
+   */
+  const bodyTest = /body\s*\{\s*(?=.*font-family:\s*[^;]+;)(?=.*margin:\s*[^;]+;)(?=.*padding:\s*[^;]+;)(?=.*background-color:\s*[^;]+;)[^}]*\}/;
+
+  /**
+   * Sprawdza, czy wartość font-family jest poprawna.
+   * @param {string} value - Wartość font-family.
+   * @returns {boolean} - Czy font-family jest poprawny.
+   */
+  function isValidFontFamily(value) {
+      return /^[a-zA-Z0-9\s,\-]+$/.test(value);
+  }
+
+  /**
+   * Sprawdza, czy wartości margin/padding są poprawne.
+   * @param {string} value - Wartość margin lub padding.
+   * @returns {boolean} - Czy wartość jest poprawna.
+   */
+  function isValidMarginPadding(value) {
+      return /^(\d+(\.\d+)?(px|em|rem|%)|auto)$/.test(value);
+  }
+
+  /**
+   * Sprawdza, czy właściwości sekcji body są poprawne.
+   * @param {string} css - Kod CSS sekcji body.
+   * @returns {boolean} - Czy wszystkie właściwości są poprawne.
+   */
+  function isValidBodyProperties(css) {
+      const fontFamilyMatch = css.match(/font-family:\s*([^;]+);/);
+      const marginMatch = css.match(/margin:\s*([^;]+);/);
+      const paddingMatch = css.match(/padding:\s*([^;]+);/);
+      const backgroundColorMatch = css.match(/background-color:\s*([^;]+);/);
+
+      return (
+          fontFamilyMatch &amp;&amp; isValidFontFamily(fontFamilyMatch[1].trim()) &amp;&amp;
+          marginMatch &amp;&amp; isValidMarginPadding(marginMatch[1].trim()) &amp;&amp;
+          paddingMatch &amp;&amp; isValidMarginPadding(paddingMatch[1].trim()) &amp;&amp;
+          backgroundColorMatch &amp;&amp; isValidColor(backgroundColorMatch[1].trim())
+      );
+  }
+
+  /**
+   * Czy kod CSS sekcji body zawiera wszystkie poprawne właściwości.
+   * @type {boolean}
+   */
+  const isValid = bodyTest.test(currentCSS) &amp;&amp; isValidBodyProperties(currentCSS);
+
+  if (isValid) {
+      setSuccessFeedback("Brawo! Udało Ci się ustawić wszystkie wymagane właściwości dla body z poprawnymi wartościami.");
+      nextLevelButton.style.display = "block"; 
+      soundOnButton();
+  } else {
+      setErrorFeedback("Sprawdź kod CSS i upewnij się, że sekcja body zawiera poprawne wartości dla margin, padding, font-family oraz background-color.");
+      nextLevelButton.style.display = "none"; 
+  }
+}
+
+/**
+ * Sprawdza poprawność poziomu 14 (CSS dla header, section i footer).
+ */
+function checkLevel14() {
+  /**
+   * Kod z edytora CSS.
+   * @type {string}
+   */
+  const currentCSS = cleanCode(cssEditor.getValue());
+
+  if (!validateCSSBlocks(currentCSS)) {
+    setErrorFeedback("Kod CSS zawiera błędy składniowe (niezamknięte nawiasy klamrowe).");
+    nextLevelButton.style.display = "none"; 
+    return;
+  }
+
+  /**
+   * Waliduje poprawność nawiasów klamrowych w kodzie CSS.
+   * @param {string} cssCode - Kod CSS do sprawdzenia.
+   * @returns {boolean} - Czy wszystkie nawiasy klamrowe są poprawnie zamknięte.
+   */
+  function validateCSSBlocks(cssCode) {
+    const openBraces = (cssCode.match(/\{/g) || []).length;
+    const closeBraces = (cssCode.match(/\}/g) || []).length;
+    return openBraces === closeBraces;
+  }
+
+  // Pozostałe walidacje w checkLevel14 zostały odpowiednio opisane w formie funkcji.
+}
+
+/**
+ * Sprawdza poprawność poziomu 15 (sekcja z tabelą 3x3 w HTML).
+ */
+function checkLevel15() {
+  /**
+   * Kod z edytora HTML.
+   * @type {string}
+   */
+  const currentHTML = cleanCode(htmlEditor.getValue());
+
+  /**
+   * Wzorzec dla sekcji HTML z tabelą 3x3.
+   * @type {RegExp}
+   */
+  const tableRegex = /&lt;section[^>]*>[\s\S]*&lt;table[^>]*>[\s\S]*&lt;tr>[\s\S]*&lt;th>[\s\S]*&lt;\/th>[\s\S]*&lt;\/tr>[\s\S]*&lt;tr>[\s\S]*&lt;td>[\s\S]*&lt;\/td>[\s\S]*&lt;\/tr>[\s\S]*&lt;\/table>[\s\S]*&lt;\/section>/g;
+
+  if (!tableRegex.test(currentHTML)) {
+    setErrorFeedback("Nie utworzyłeś sekcji z tabelą 3x3 zawierającą odpowiednie nagłówki i komórki.");
+    nextLevelButton.style.display = "none";
+  } else {
+    setSuccessFeedback("Brawo! Utworzyłeś sekcję z tabelą 3x3 z nagłówkami i komórkami.");
+    nextLevelButton.style.display = "block";
+  }
+}
+
+
+/**
+ * Sprawdza poprawność poziomu 16 (style nawigacji w CSS).
+ */
+function checkLevel16() {
+  /**
+   * Kod z edytora CSS.
+   * @type {string}
+   */
+  const currentCSS = cleanCode(cssEditor.getValue());
+
+  /**
+   * Waliduje poprawność nawiasów klamrowych w kodzie CSS.
+   * @param {string} cssCode - Kod CSS do sprawdzenia.
+   * @returns {boolean} - Czy wszystkie nawiasy klamrowe są poprawnie zamknięte.
+   */
+  function validateCSSBlocks(cssCode) {
+    const openBraces = (cssCode.match(/\{/g) || []).length;
+    const closeBraces = (cssCode.match(/\}/g) || []).length;
+    return openBraces === closeBraces;
+  }
+
+  if (!validateCSSBlocks(currentCSS)) {
+    setErrorFeedback("Upewnij się, że wszystkie sekcje są poprawnie zamknięte klamrami.");
+    nextLevelButton.style.display = "none";
+    return;
+  }
+
+  /**
+   * Wzorce dla testów CSS nawigacji.
+   * @type {RegExp}
+   */
+  const navTest = /nav\s*ul\s*\{\s*(?=.*list-style\s*:\s*none)(?=.*padding\s*:\s*0)[^}]*\}/g;
+  const liTest = /nav\s*ul\s*li\s*\{\s*(?=.*display\s*:\s*(inline|none|block|flex|inline-block))(?=.*margin\s*:\s*[^;]+)[^}]*\}/g;
+  const aTest = /nav\s*ul\s*li\s*a\s*\{\s*(?=.*color\s*:\s*[^;]+)(?=.*text-decoration\s*:\s*none)[^}]*\}/g;
+
+  const isValidNav = navTest.test(currentCSS);
+  const isValidLi = liTest.test(currentCSS);
+  const isValidA = aTest.test(currentCSS);
+
+  if (isValidNav &amp;&amp; isValidLi &amp;&amp; isValidA) {
+    setSuccessFeedback("Brawo! Udało Ci się ustawić style dla nawigacji.");
+    nextLevelButton.style.display = "block";
+    soundOnButton();
+  } else {
+    setErrorFeedback("Sprawdź kod CSS i upewnij się, że ustawiłeś style dla nawigacji.");
+    nextLevelButton.style.display = "none";
+  }
+}
+
+/**
+ * Sprawdza poprawność poziomu 17 (style tabel w CSS).
+ */
+function checkLevel17() {
+  /**
+   * Kod z edytora CSS.
+   * @type {string}
+   */
+  const css = cleanCode(cssEditor.getValue());
+
+  /**
+   * Wzorce dla tabel i nagłówków w CSS.
+   * @type {RegExp}
+   */
+  const tableTest = /table\s*\{\s*(?=.*width\s*:\s*[^;]+)(?=.*border-collapse\s*:\s*(collapse|separate))[^}]*\}/g;
+  const table2Test = /table,\s*th,\s*td\s*\{\s*(?=.*border\s*:\s*[^;]+)[^}]*\}/g;
+  const thTest = /th,\s*td\s*\{\s*(?=.*padding\s*:\s*[^;]+)(?=.*text-align\s*:\s*(left|center|right))[^}]*\}/g;
+
+  /**
+   * Waliduje poprawność nawiasów klamrowych w kodzie CSS.
+   * @param {string} cssCode - Kod CSS do sprawdzenia.
+   * @returns {boolean} - Czy wszystkie nawiasy klamrowe są poprawnie zamknięte.
+   */
+  function validateCSSBlocks(cssCode) {
+    const openBraces = (cssCode.match(/\{/g) || []).length;
+    const closeBraces = (cssCode.match(/\}/g) || []).length;
+    return openBraces === closeBraces;
+  }
+
+  const isValidStructure = validateCSSBlocks(css);
+
+  if (!isValidStructure) {
+    setErrorFeedback("Upewnij się, że wszystkie sekcje są poprawnie zamknięte klamrami.");
+    nextLevelButton.style.display = "none";
+    return;
+  }
+
+  const isValidTable = tableTest.test(css);
+  const isValidTable2 = table2Test.test(css);
+  const isValidTh = thTest.test(css);
+
+  if (isValidTable &amp;&amp; isValidTable2 &amp;&amp; isValidTh) {
+    setSuccessFeedback("Gratulacje! Ustawiłeś wymagane style nagłówków i tabel.");
+    nextLevelButton.style.display = "block";
+    soundOnButton();
+  } else {
+    setErrorFeedback("Sprawdź kod CSS i upewnij się, że ustawiłeś wszystkie wymagane właściwości i zamknąłeś sekcje klamrami.");
+    nextLevelButton.style.display = "none";
+  }
+}
+
+/**
+ * Sprawdza poprawność poziomu 18 (formularz HTML z wymaganymi polami).
+ */
+function checkLevel18() {
+  /**
+   * Kod z edytora HTML.
+   * @type {string}
+   */
+  const currentHTML = cleanCode(htmlEditor.getValue());
+
+  /**
+   * Wzorzec dla formularza HTML.
+   * @type {RegExp}
+   */
+  const formRegex = /&lt;form[^>]*>[\s\S]*&lt;input\s*type="text"[^>]*>[\s\S]*&lt;input\s*type="text"[^>]*>[\s\S]*&lt;input\s*type="tel"[^>]*>[\s\S]*&lt;input\s*type="email"[^>]*>[\s\S]*&lt;input\s*type="submit"[^>]*>[\s\S]*&lt;\/form>/g;
+
+  if (!formRegex.test(currentHTML)) {
+    setErrorFeedback("Nie utworzyłeś formularza z wymaganymi polami (imię, nazwisko, telefon, email) oraz przyciskiem 'Wyślij'.");
+    nextLevelButton.style.display = "none";
+  } else {
+    setSuccessFeedback("Brawo! Utworzyłeś formularz z wymaganymi polami i przyciskiem 'Wyślij'.");
+    nextLevelButton.style.display = "block";
+    soundOnButton();
+  }
+}
+
+/**
+ * Sprawdza poprawność poziomu 19 (style formularza w CSS).
+ */
+function checkLevel19() {
+  /**
+   * Kod z edytora CSS.
+   * @type {string}
+   */
+  const css = cleanCode(cssEditor.getValue());
+
+  /**
+   * Wzorce dla stylów formularza, inputów i przycisków.
+   * @type {RegExp}
+   */
+  const formTest = /form\s*\{\s*(?=.*background-color\s*:\s*[^;]+)(?=.*width\s*:\s*[^;]+)(?=.*margin\s*:\s*[^;]+)(?=.*padding\s*:\s*[^;]+)(?=.*border-radius\s*:\s*[^;]+)[^}]*\}/g;
+  const inputTest = /input\s*\{\s*(?=.*background-color\s*:\s*[^;]+)(?=.*border\s*:\s*[^;]+)(?=.*padding\s*:\s*[^;]+)(?=.*font-size\s*:\s*[^;]+)(?=.*border-radius\s*:\s*[^;]+)[^}]*\}/g;
+  const buttonTest = /button\s*\{\s*(?=.*background-color\s*:\s*[^;]+)(?=.*border\s*:\s*[^;]+)(?=.*padding\s*:\s*[^;]+)(?=.*font-size\s*:\s*[^;]+)(?=.*color\s*:\s*[^;]+)(?=.*border-radius\s*:\s*[^;]+)(?=.*cursor\s*:\s*[^;]+)[^}]*\}/g;
+
+  /**
+   * Waliduje poprawność nawiasów klamrowych w kodzie CSS.
+   * @param {string} cssCode - Kod CSS do sprawdzenia.
+   * @returns {boolean} - Czy wszystkie nawiasy klamrowe są poprawnie zamknięte.
+   */
+  function validateCSSBlocks(cssCode) {
+    const openBraces = (cssCode.match(/\{/g) || []).length;
+    const closeBraces = (cssCode.match(/\}/g) || []).length;
+    return openBraces === closeBraces;
+  }
+
+  const isValidStructure = validateCSSBlocks(css);
+
+  if (!isValidStructure) {
+    setErrorFeedback("Upewnij się, że wszystkie sekcje są poprawnie zamknięte klamrami.");
+    nextLevelButton.style.display = "none";
+    return;
+  }
+
+  const isValidForm = formTest.test(css);
+  const isValidInput = inputTest.test(css);
+  const isValidButton = buttonTest.test(css);
+
+  if (isValidForm &amp;&amp; isValidInput &amp;&amp; isValidButton) {
+    setSuccessFeedback("Gratulacje! Ustawiłeś wymagane style formularza, inputów i przycisków.");
+    nextLevelButton.style.display = "block";
+    soundOnButton();
+  }else {
+    setErrorFeedback("Sprawdź kod CSS i upewnij się, że ustawiłeś wszystkie wymagane właściwości dla formularza, inputów i przycisków.");
+    nextLevelButton.style.display = "none";
+  }
+}
+/**
+ * Wyświetla komunikat końcowy po ukończeniu wszystkich poziomów.
+ */
+function checkLevel20() {
+  /**
+   * Komunikat końcowy dla użytkownika.
+   * @type {string}
+   */
+  const thankYouMessage = "Gratulacje! Ukończyłeś wszystkie poziomy. Dziękuję za poświęcony czas. Cieszę się, że wziąłeś udział w tej przygodzie nauki programowania! To dopiero początek...";
+
+  alert(thankYouMessage);
+
+  /**
+   * Wyświetla przycisk pobierania kodu HTML i CSS.
+   */
+  downloadBtn.style.display = "block";
+
+  /**
+   * Ukrywa przycisk przejścia do kolejnego poziomu.
+   */
+  nextLevelButton.style.display = "none";
+}
+
+  /**
+ * Funkcja zwiększająca poziom gry po naciśnięciu przycisku
+ */
+function goToNextLevel() {
+    currentLevel++;
+    if (currentLevel === 2) {
+      setInstructions(currentLevel);
+      checkLevel2(); 
+      cssEditor.setValue(`h1 {
+      }`);
+    } else if (currentLevel === 3) {
+      setInstructions(currentLevel);
+      checkLevel3(); 
+    } else if (currentLevel === 4) {
+      setInstructions(currentLevel);
+      checkLevel4(); 
+    } else if (currentLevel === 5) {
+      setInstructions(currentLevel);
+      checkLevel5();
+    } else if (currentLevel === 6) {
+      setInstructions(currentLevel);
+      checkLevel6();
+    } else if (currentLevel === 7) {
+      setInstructions(currentLevel);
+      checkLevel7();
+    }else if (currentLevel === 8) {
+      setInstructions(currentLevel);
+      htmlEditor.setValue("&lt;header> &lt;/header>"); // Ustawienie zawartości HTML
+      cssEditor.setValue(""); // Czyszczenie zawartości CSS
+      checkLevel8(); 
+    }else if (currentLevel === 9) {
+      setInstructions(currentLevel);
+      checkLevel9(); 
+    }else if(currentLevel === 10){
+      setInstructions(currentLevel);
+      checkLevel10(); 
+    }else if(currentLevel === 11){
+      setInstructions(currentLevel);
+      checkLevel11(); 
+    }else if(currentLevel === 12){
+      setInstructions(currentLevel);
+      checkLevel12(); 
+    }else if(currentLevel === 13){
+      setInstructions(currentLevel);
+      checkLevel13(); 
+    }else if(currentLevel === 14){
+      setInstructions(currentLevel);
+      checkLevel14();
+    }else if(currentLevel === 15){
+      setInstructions(currentLevel);
+      checkLevel15();
+    }else if (currentLevel === 16) {
+      setInstructions(currentLevel);
+      checkLevel16(); 
+    }else if (currentLevel === 17) {
+      setInstructions(currentLevel);
+      checkLevel17(); 
+    }else if (currentLevel === 18) {
+      setInstructions(currentLevel);
+      checkLevel18(); 
+    }else if (currentLevel === 19) {
+      setInstructions(currentLevel);
+      checkLevel19(); 
+    }else if (currentLevel === 20) {
+      setInstructions(currentLevel);
+      checkLevel20(); 
+    }
+      saveCurrentLevelToLocalStorage();
+  }
+/**
+ * Funkcja sprawdzająca zmiany w edytorze HTML na poszczególnych poziomach
+ */
+  htmlEditor.on('change', () => {
+    updatePreview();
+    if (currentLevel === 1) {
+      checkLevel1(); 
+    } else if (currentLevel === 2) {
+      checkLevel2(); 
+    } else if (currentLevel === 3) {
+      checkLevel3(); 
+    } else if (currentLevel === 4) {
+      checkLevel4();
+    } else if (currentLevel === 5) {
+      checkLevel5(); 
+    } else if (currentLevel === 6) {
+      checkLevel6(); 
+    } else if (currentLevel === 7) {
+      checkLevel7(); 
+    } else if (currentLevel === 8) {
+      checkLevel8(); 
+    } else if (currentLevel === 9) {
+      checkLevel9(); 
+    } else if (currentLevel === 10) {
+      checkLevel10(); 
+    } else if (currentLevel === 11) {
+      checkLevel11(); 
+    } else if (currentLevel === 12) {
+      checkLevel12(); 
+    } else if (currentLevel === 13) {
+      checkLevel13(); 
+    } else if (currentLevel === 14) {
+      checkLevel14(); 
+    } else if (currentLevel === 15) {
+      checkLevel15(); 
+    } else if (currentLevel === 16) {
+      checkLevel16(); 
+    } else if (currentLevel === 17) {
+      checkLevel17(); 
+    }else if (currentLevel === 18) {
+      checkLevel18(); 
+    }else if (currentLevel === 19) {
+      checkLevel19(); 
+    }else if (currentLevel === 20) {
+      checkLevel20(); 
+    }
+    saveToLocalStorage();
+  });
+  /**
+ * Funkcja sprawdzająca zmiany w edytorze CSS na poszczególnych poziomach
+ */
+  cssEditor.on('change', () => {
+    updatePreview();
+    if (currentLevel === 2) {
+      checkLevel2(); 
+    } else if (currentLevel === 3) {
+      checkLevel3(); 
+    } else if (currentLevel === 5) {
+      checkLevel5(); 
+    } else if (currentLevel === 6) {
+      checkLevel6(); 
+    } else if (currentLevel === 7) {
+      checkLevel7(); 
+    } else if (currentLevel === 8) {
+      checkLevel8(); 
+    } else if(currentLevel === 9){
+      checkLevel9();
+    } else if(currentLevel === 10){
+      checkLevel10();
+    } else if(currentLevel === 11){
+      checkLevel11();
+    } else if (currentLevel === 12) {
+      checkLevel12(); 
+    } else if (currentLevel === 13) {
+      checkLevel13(); 
+    } else if (currentLevel === 14) {
+      checkLevel14(); 
+    } else if (currentLevel === 15) {
+      checkLevel15(); 
+    } else if (currentLevel === 16) {
+      checkLevel16(); 
+    } else if (currentLevel === 17) {
+      checkLevel17(); 
+    }else if (currentLevel === 18) {
+      checkLevel18(); 
+    }else if (currentLevel === 19) {
+      checkLevel19(); 
+    }else if (currentLevel === 20) {
+      checkLevel20(); 
+    }
+      saveToLocalStorage();
+  });
+
+  /**
+ * Funkcja otwiera stronę z instrukcjami dla bieżącego poziomu.
+ */
+  function openSite(){
+    if (currentLevel === 1) {
+      window.open('https://www.w3schools.com/tags/tag_hn.asp', '_blank');
+    } else if (currentLevel === 2) {
+      window.open('https://www.w3schools.com/html/tryit.asp?filename=tryhtml_styles_text-align', '_blank');
+    } else if (currentLevel === 3) {
+      window.open('https://www.w3schools.com/cssref/pr_background-color.php', '_blank');
+    } else if (currentLevel === 4) {
+      window.open('https://www.w3schools.com/tags/tag_img.asp', '_blank');
+    } else if (currentLevel === 5) {
+      window.open('https://www.w3schools.com/html/html_lists.asp', '_blank');
+    } else if (currentLevel === 6) {
+      window.open('https://www.w3schools.com/html/html_lists.asp', '_blank');
+    } else if (currentLevel === 7) {
+      window.open('https://www.w3schools.com/tags/tag_a.asp', '_blank');
+    } else if (currentLevel === 8) {
+      window.open('https://www.w3schools.com/css/css_navbar.asp', '_blank');
+    } else if (currentLevel === 9) {
+      window.open('https://www.w3schools.com/tags/tag_section.asp', '_blank');
+    } else if (currentLevel === 10) {
+      window.open('https://www.w3schools.com/tags/tag_section.asp', '_blank');
+    } else if (currentLevel === 11) {
+      window.open('https://www.w3schools.com/tags/tag_footer.asp', '_blank');
+    } else if (currentLevel === 12) {
+      window.open('https://www.w3schools.com/cssref/pr_background-color.php', '_blank');
+    } else if (currentLevel === 13) {
+      window.open('https://www.w3schools.com/css/css_font.asp', '_blank');
+    } else if (currentLevel === 14) {
+      window.open('https://www.w3schools.com/css/default.asp', '_blank');
+    } else if (currentLevel === 15) {
+      window.open('https://www.w3schools.com/html/html_tables.asp', '_blank');
+    } else if (currentLevel === 16) {
+      window.open('https://www.w3schools.com/css/default.asp', '_blank');
+    } else if (currentLevel === 17) {
+      window.open('https://www.w3schools.com/css/default.asp', '_blank');
+    } else if (currentLevel === 18) {
+      window.open('https://www.w3schools.com/hTml/html_forms.asp', '_blank');
+    } else if (currentLevel === 19) {
+      window.open('https://www.w3schools.com/css/css_form.asp', '_blank');
+    } else if (currentLevel === 20) {
+      document.getElementById('poradnik').style.display = 'none'; // Ukrywa przycisk na poziomie 20
+    } else {
+      console.log('Nieznany poziom');
+    }
+  }
+   
+
+ /**
+  * Funkcja wyświetlająca instrukcje dla poszczególnych poziomów
+ */
+  setInstructions(currentLevel);
+  function setInstructions(level) {
+    if (level === 1) {
+      instructions.innerHTML = `
+      &lt;h2>Poziom 1: Utwórz nagłówek 1 stopnia&lt;/h2>
+      &lt;p>Nagłówek jest podstawą&lt;/p>
+      &lt;p>Twoje zadanie to utworzenie nagłówka 1 stopnia (&lt;code>&amp;lt;h1&amp;gt;&lt;/code>) w kodzie HTML, pamiętaj o zamknięciu. Wprowadź odpowiedni kod HTML, aby zakończyć poziom. Kod HTML zawiera sekcję body więc nie musisz jej dodawać.&lt;/p>&lt;div class="controls">
+        `;
+    
+    } else if (level === 2) {
+      instructions.innerHTML = `
+        &lt;h2>Poziom 2: Wyśrodkowanie tekstu&lt;/h2>
+        &lt;p>Twoje zadanie to wyśrodkowanie nagłówka 1 stopnia za pomocą CSS. Użyj odpowiednich właściwości CSS, takich jak &lt;code>text-align: center;&lt;/code>, aby to osiągnąć.&lt;/p>
+                
+`;
+    } else if (level === 3) {
+      instructions.innerHTML = `
+        &lt;h2>Poziom 3: Dodaj tło&lt;/h2>
+        &lt;p>Zmiana koloru całej strony polega na wprowadzeniu do Arkusza styli właściwości dla znacznika &lt;code>Body&lt;/code> będącego ciałem całej strony.&lt;/p>
+        &lt;p>Twoje zadanie to dodać tło do strony. Użyj właściwości CSS &lt;code>background-color&lt;/code>, aby ustawić tło strony. Możesz użyć zarówno angielskich nazw kolorów, jak i kodów HEX.&lt;/p>
+        `;
+    } else if (level === 4) {
+      instructions.innerHTML = `
+        &lt;h2>Poziom 4: Dodaj obrazek&lt;/h2>
+        &lt;p>Twoje zadanie to dodać obrazek do strony. Użyj właściwości html (&lt;code>&amp;lt;img src="linkobrazka"&amp;gt;&lt;/code>), aby dodać obrazek do strony, spróbuj dodać na przykład tego słodkiego kotka: &lt;br/>&lt;br/> https://tiny.pl/01-nhzw7 &lt;/p>
+       `;
+    } else if (level === 5) {
+      instructions.innerHTML = `
+  &lt;h2>Poziom 5: Uporządkowane listy&lt;/h2>
+  &lt;p>Twoje zadanie to dodanie uporządkowanej listy (&lt;code>&amp;lt;ol&amp;gt;&lt;/code>) z co najmniej trzema elementami (&lt;code>&amp;lt;li&amp;gt;&lt;/code>) oraz zmiana stylu numeracji na rzymską w CSS (&lt;code>list-style-type: upper-roman;&lt;/code> dla znacznika &lt;code>ol&lt;/code>).&lt;/p>
+  &lt;h3>Jak dodawać listy w HTML?&lt;/h3>
+  &lt;p>W HTML możesz tworzyć dwa rodzaje list:&lt;/p>
+  &lt;ul>
+    &lt;li>&lt;strong>Uporządkowane listy (&lt;code>&amp;lt;ol&amp;gt;&lt;/code>):&lt;/strong> Listy numerowane, np. 1, 2, 3.&lt;/li>
+    &lt;li>&lt;strong>Nieuporządkowane listy (&lt;code>&amp;lt;ul&amp;gt;&lt;/code>):&lt;/strong> Listy z punktami, np. •, ◦, ■.&lt;/li>
+  &lt;/ul>
+  &lt;h4>Przykład uporządkowanej listy:&lt;/h4>
+  &lt;pre>
+    &lt;code>
+&amp;lt;ol&amp;gt;
+  &amp;lt;li&amp;gt;Element pierwszy&amp;lt;/li&amp;gt;
+  &amp;lt;li&amp;gt;Element drugi&amp;lt;/li&amp;gt;
+  &amp;lt;li&amp;gt;Element trzeci&amp;lt;/li&amp;gt;
+&amp;lt;/ol&amp;gt;
+    &lt;/code>
+  &lt;/pre>
+  &lt;p>Efekt:&lt;/p>
+  &lt;ol>
+    &lt;li>Element pierwszy&lt;/li>
+    &lt;li>Element drugi&lt;/li>
+    &lt;li>Element trzeci&lt;/li>
+  &lt;/ol>
+  &lt;h4>Zmiana stylu numeracji w CSS:&lt;/h4>
+  &lt;pre>
+    &lt;code>
+ol {
+  list-style-type: upper-roman;
+}
+    &lt;/code>
+  &lt;/pre>
+  &lt;p>Efekt: I, II, III&lt;/p>
+  &lt;h4>Przykład nieuporządkowanej listy:&lt;/h4>
+  &lt;pre>
+    &lt;code>
+&amp;lt;ul&amp;gt;
+  &amp;lt;li&amp;gt;Element pierwszy&amp;lt;/li&amp;gt;
+  &amp;lt;li&amp;gt;Element drugi&amp;lt;/li&amp;gt;
+  &amp;lt;li&amp;gt;Element trzeci&amp;lt;/li&amp;gt;
+&amp;lt;/ul&amp;gt;
+    &lt;/code>
+  &lt;/pre>
+  &lt;p>Efekt:&lt;/p>
+  &lt;ul>
+    &lt;li>Element pierwszy&lt;/li>
+    &lt;li>Element drugi&lt;/li>
+    &lt;li>Element trzeci&lt;/li>
+  &lt;/ul>
+`;
+
+    } else if (level === 6) {
+      instructions.innerHTML = `
+        &lt;h2>Poziom 6: Nieuporządkowane listy z ikonami&lt;/h2>
+        &lt;p>Dodaj nieuporządkowaną listę (&lt;code>&amp;lt;ul&amp;gt;&lt;/code>) z czterema elementami (&lt;code>&amp;lt;li&amp;gt;&lt;/code>). Ustaw styl ikon na &lt;code> ul{ list-style-type: circle;
+&lt;/code>} za pomocą CSS.&lt;/p>`;
+    } else if (level === 7) {
+      instructions.innerHTML = `
+        &lt;h2>Poziom 7: Dodawanie linków&lt;/h2>
+        &lt;p>Dodaj link na stronie za pomocą znacznika &lt;code>&amp;lt;a href="(twój link)"&amp;gt;&lt;/code>. Link może prowadzić do dowolnej strony, np. Google. Pamiętaj, aby znacznik był widoczny musisz wprowadzić jakiś tekst pomiędzy znacznikami &lt;code>&amp;lta&amp;gt&lt;/code> !&lt;/p>
+        `;
+    }else if(level === 8){
+      instructions.innerHTML = `
+    &lt;h2>Poziom 8: Pasek nawigacji&lt;/h2>
+    &lt;p>Zabawa się skończyła! Bierzemy się za pisanie porządnej strony internetowej z prawdziwego zdarzenia.&lt;/p>
+    &lt;p>W tym zadaniu musisz stworzyć pasek nawigacji wewnątrz znacznika &lt;code>&amp;lt;header&amp;gt;&lt;/code>. Pasek nawigacji, czyli część strony służącą do nawigacji i przechodzenia po poszczególnych stronach, na przykład:&lt;/p>
+    &lt;pre>
+        &lt;code>
+&amp;lt;nav&amp;gt;
+    &amp;lt;ul&amp;gt;
+        &amp;lt;li&amp;gt;&amp;lt;a href="link"&amp;gt;Home&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+        &amp;lt;li&amp;gt;&amp;lt;a href="link"&amp;gt;Services&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+    &amp;lt;/ul&amp;gt;
+&amp;lt;/nav&amp;gt;
+        &lt;/code>
+    &lt;/pre>
+    &lt;p>Poniżej nawigacji dodaj tytuł strony w elemencie &lt;code>&amp;lt;h1&amp;gt;&lt;/code> oraz paragraf w elemencie &lt;code>&amp;lt;p&amp;gt;&lt;/code>.&lt;/p>
+    &lt;p>Twoim zadaniem jest stworzenie takiej struktury z dowolnymi treściami w tytule oraz paragrafie. Pamiętaj, że elementy &lt;code>&amp;lt;ul&amp;gt;&lt;/code> i &lt;code>&amp;lt;li&amp;gt;&lt;/code> muszą być poprawnie zapisane, a linki &lt;code>&amp;lt;a&amp;gt;&lt;/code> muszą być poprawnie zamknięte.&lt;/p>
+`;
+
+    }else if(level === 9){
+      instructions.innerHTML = `
+  &lt;h2>Poziom 9: Sekcje&lt;/h2>
+  &lt;p>W tym zadaniu Twoim celem jest stworzenie co najmniej jednej sekcji &lt;code>&amp;lt;section&amp;gt;&lt;/code> w HTML. 
+  Sekcje są definiowane za pomocą elementu &lt;code>&amp;ltsection>. Można w nich umieszczać inne elementy HTML, takie jak nagłówki, tekst, obrazy, listy, itp. Sekcja zwykle zawiera spójną część treści o podobnym temacie.
+  Sekcje mogą zawierać dowolną treść, ale muszą być poprawnie zapisane. Przykład:&lt;/p>
+  &lt;pre>
+      &lt;code>
+&amp;lt;section&amp;gt;
+  &amp;lt;h2&amp;gt;Nagłówek sekcji&amp;lt;/h2&amp;gt;
+&amp;lt;/section&amp;gt;
+      &lt;/code>
+  &lt;/pre>
+  &lt;p>W każdej sekcji może znaleźć się dowolna treść. Upewnij się, że sekcja jest poprawnie otwarta i zamknięta.&lt;/p>
+  &lt;p>Zastanów się ile sekcji będziesz potrzebował na swojej stronie!&lt;/p>
+`;
+    }else if(level === 10){
+      instructions.innerHTML = `
+  &lt;h2>Poziom 10: Zawartości Sekcji&lt;/h2>
+  &lt;p>W tym zadaniu musisz wypełnić sekcje utworzone we wcześniejszym zadaniu, &lt;code>&amp;lt;section&amp;gt;&lt;/code> w HTML.&lt;/p>
+  &lt;p>Pamiętaj, że każda sekcja musi być poprawnie otwarta i zamknięta.&lt;/p>
+  &lt;p>Do każdej sekcji umieścić możesz co tylko zechcesz od paragrafów, przez tabele aż po obrazki i nie tylko! Ogranicza cię tylko twoja wyobraźnia... &lt;/p>
+  &lt;p>... no i zdolności pisania stron.&lt;/p> 
+  `;
+    }else if(level === 11){
+      instructions.innerHTML = `
+  &lt;h2>Poziom 11: Stwórz stopkę (footer)&lt;/h2>
+  &lt;p>Twoim zadaniem jest stworzenie elementu &lt;code>&amp;lt;footer&amp;gt;&lt;/code> w HTML.&lt;/p>
+  &lt;p>Stopka strony to element, który zazwyczaj znajduje się na dole strony i zawiera ważne informacje, takie jak:&lt;/p>
+  &lt;ul>
+      &lt;li>Informacje o autorze strony&lt;/li>
+      &lt;li>Linki do stron społecznościowych&lt;/li>
+      &lt;li>Informacje kontaktowe&lt;/li>
+      &lt;li>Linki do polityki prywatności lub regulaminu&lt;/li>
+      &lt;li>Copyright (np. &lt;code>&amp;copy; 2024 Twoja Firma&lt;/code>)&lt;/li>
+      &lt;li>Adresy e-mail, numery telefonów lub inne dane kontaktowe&lt;/li>
+  &lt;/ul>
+  &lt;p>Możesz dodać dowolne elementy, które uznasz za potrzebne, ale pamiętaj, że stopka powinna być odpowiednio zamknięta, czyli musisz zawrzeć zarówno &lt;code>&amp;lt;footer&amp;gt;&lt;/code> na początku, jak i &lt;code>&amp;lt;/footer&amp;gt;&lt;/code> na końcu.&lt;/p>
+  &lt;p>Poniżej przykład poprawnie zapisanej stopki:&lt;/p>
+  &lt;pre>
+      &lt;code>
+&amp;lt;footer&amp;gt;
+  &amp;lt;p&amp;gt;© 2024 Twoja Firma. Wszelkie prawa zastrzeżone.&amp;lt;/p&amp;gt;
+  &amp;lt;p&amp;gt;Kontakt: example@twojafirma.com&amp;lt;/p&amp;gt;
+&amp;lt;/footer&amp;gt;
+      &lt;/code>
+  &lt;/pre>
+  &lt;p>Upewnij się, że w stopce zawrzesz odpowiednie informacje, a tagi &lt;code>&amp;lt;footer&amp;gt;&lt;/code> i &lt;code>&amp;lt;/footer&amp;gt;&lt;/code> będą poprawnie zapisane.&lt;/p>
+  `;
+    }else if(level === 12){
+      instructions.innerHTML = `
+      &lt;h2>Poziom 12: Zmiana koloru tła&lt;/h2>
+      &lt;p>W tym zadaniu musisz zmienić kolor tła całej strony za pomocą CSS. Kolor tła jest ważnym elementem, który wpływa na estetykę i funkcjonalność strony internetowej.&lt;/p>
+      &lt;p>Możesz wybrać dowolny kolor(kolor czarny jest zabroniony), ale pamiętaj, że tło powinno być przyjemne dla oka i nie przytłaczać treści strony. Poniżej znajdziesz kilka propozycji kolorów tła, które możesz zastosować:&lt;/p>
+      &lt;ul>
+          &lt;li>&lt;code>background-color: #f4f4f4;&lt;/code> - delikatny szary kolor tła, który sprawia, że tekst jest dobrze widoczny.&lt;/li>
+          &lt;li>&lt;code>background-color: #ffffff;&lt;/code> - klasyczna biel, nadaje stronie czystości i przestronności.&lt;/li>
+          &lt;li>&lt;code>background-color: #e0e0e0;&lt;/code> - lekki szary kolor, subtelny, ale nowoczesny.&lt;/li>
+          &lt;li>&lt;code>background-color: #ffeb3b;&lt;/code> - jasny żółty, energetyczny i przyciągający uwagę.&lt;/li>
+          &lt;li>&lt;code>background-color: #4caf50;&lt;/code> - zielony, uspokajający kolor.&lt;/li>
+          &lt;li>&lt;code>background-color: #2196f3;&lt;/code> - jasny niebieski, chłodny i profesjonalny.&lt;/li>
+      &lt;/ul>
+      &lt;p>Możesz również używać wartości RGB, np. &lt;code>background-color: rgb(255, 0, 0);&lt;/code>, lub wartości HSL, np. &lt;code>background-color: hsl(120, 100%, 50%);&lt;/code>.&lt;/p>
+      &lt;p>Przykład, jak zmienić kolor tła strony:&lt;/p>
+      &lt;pre>
+          &lt;code>
+body {
+  background-color: #f4f4f4; 
+}
+          &lt;/code>
+      &lt;/pre>
+      &lt;p>Twoim zadaniem jest zmiana koloru tła w arkuszu CSS. Wybierz kolor, który najlepiej pasuje do Twojej strony i spraw, aby całość wyglądała atrakcyjnie!&lt;/p>
+  `;
+    }else if(level === 13){
+      instructions.innerHTML = `
+        &lt;h2>Poziom 13: Ustawienie marginesów, paddingu i czcionki&lt;/h2>
+        &lt;p>W tym zadaniu musisz ustawić podstawowe właściwości CSS dla elementu &lt;code>body&lt;/code>.&lt;/p>
+        &lt;p>Wymagane właściwości to:&lt;/p>
+        &lt;ul>
+            &lt;li>&lt;code>font-family:&lt;/code> – ustawienie czcionki, np. &lt;code>Arial&lt;/code>, &lt;code>sans-serif&lt;/code> lub dowolnej innej czcionki.&lt;/li>
+            &lt;li>&lt;code>margin:&lt;/code> – ustawienie marginesu (odstępu) wokół elementu, np. &lt;code>0&lt;/code>, &lt;code>10px&lt;/code>, &lt;code>5%&lt;/code> itd.&lt;/li>
+            &lt;li>&lt;code>padding:&lt;/code> – ustawienie paddingu (wewnętrznego odstępu), np. &lt;code>10px&lt;/code>, &lt;code>5%&lt;/code> itd.&lt;/li>
+        &lt;/ul>
+        &lt;p>Te trzy właściwości wpływają na wygląd strony:&lt;/p>
+        &lt;ul>
+            &lt;li>&lt;strong>font-family&lt;/strong> – określa, jaka czcionka będzie używana na stronie. Można wybrać czcionki systemowe, jak &lt;code>Arial&lt;/code> lub &lt;code>serif&lt;/code>, lub czcionki zewnętrzne, jak Google Fonts.&lt;/li>
+            &lt;li>&lt;strong>margin&lt;/strong> – kontroluje przestrzeń wokół elementu. Może być ustawiona na wartość zerową, aby element przylegał do innych, lub na większą, by oddzielić elementy.&lt;/li>
+            &lt;li>&lt;strong>padding&lt;/strong> – ustawia wewnętrzną przestrzeń w elemencie, np. pomiędzy tekstem a krawędzią kontenera. Jest to ważne do poprawnego rozmieszczenia treści na stronie.&lt;/li>
+        &lt;/ul>
+        &lt;p>Twoim zadaniem jest ustawienie tych trzech właściwości w pliku CSS dla &lt;code>body&lt;/code>, np.:&lt;/p>
+        &lt;pre>
+            &lt;code>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+            &lt;/code>
+        &lt;/pre>
+        &lt;p>Użyj odpowiednich wartości dla każdego z tych atrybutów i spraw, by Twoja strona wyglądała dobrze!&lt;/p>
+    `;
+    }else if(level === 14){
+      instructions.innerHTML = `
+    &lt;h2>Poziom 14: Ustawienie stylów dla &lt;code>header&lt;/code>, &lt;code>section&lt;/code> i &lt;code>footer&lt;/code>&lt;/h2>
+    &lt;p>W tym zadaniu musisz ustawić właściwości CSS dla trzech elementów: &lt;code>header&lt;/code>, &lt;code>section&lt;/code> oraz &lt;code>footer&lt;/code>.&lt;/p>
+    &lt;p>Oto jakie właściwości musisz dodać:&lt;/p>
+
+    &lt;h3>1. Ustawienia dla &lt;code>header&lt;/code>&lt;/h3>
+    &lt;p>W przypadku &lt;code>header&lt;/code> musisz ustawić następujące właściwości:&lt;/p>
+    &lt;ul>
+        &lt;li>&lt;code>background-color:&lt;/code> – Ustaw kolor tła dla nagłówka (np. &lt;code>#333&lt;/code> dla ciemnego tła).&lt;/li>
+        &lt;li>&lt;code>color:&lt;/code> – Ustaw kolor tekstu w nagłówku (np. &lt;code>#fff&lt;/code> dla białego tekstu na ciemnym tle).&lt;/li>
+        &lt;li>&lt;code>padding:&lt;/code> – Ustaw odstępy wewnętrzne w nagłówku (np. &lt;code>20px 0&lt;/code> dla 20px odstępu na górze i dole).&lt;/li>
+        &lt;li>&lt;code>text-align:&lt;/code> – Ustaw wyrównanie tekstu w nagłówku (np. &lt;code>center&lt;/code> dla wyśrodkowanego tekstu).&lt;/li>
+    &lt;/ul>
+
+    &lt;h3>2. Ustawienia dla &lt;code>section&lt;/code>&lt;/h3>
+    &lt;p>W przypadku &lt;code>section&lt;/code> musisz ustawić następujące właściwości:&lt;/p>
+    &lt;ul>
+        &lt;li>&lt;code>padding:&lt;/code> – Ustaw wewnętrzne odstępy w sekcji (np. &lt;code>20px&lt;/code> dla 20px odstępu wewnątrz sekcji).&lt;/li>
+        &lt;li>&lt;code>margin:&lt;/code> – Ustaw odstępy zewnętrzne wokół sekcji (np. &lt;code>20px 0&lt;/code> dla odstępu 20px z góry i dołu).&lt;/li>
+        &lt;li>&lt;code>background-color:&lt;/code> – Ustaw kolor tła sekcji (np. &lt;code>#fff&lt;/code> dla białego tła).&lt;/li>
+        &lt;li>&lt;code>border-radius:&lt;/code> – Ustaw zaokrąglenie rogów sekcji (np. &lt;code>5px&lt;/code> dla lekko zaokrąglonych rogów).&lt;/li>
+        &lt;li>&lt;code>box-shadow:&lt;/code> – Ustaw cień dla sekcji (np. &lt;code>0 0 10px rgba(0, 0, 0, 0.1)&lt;/code> dla lekkiego cienia).&lt;/li>
+    &lt;/ul>
+
+    &lt;h3>3. Ustawienia dla &lt;code>footer&lt;/code>&lt;/h3>
+    &lt;p>W przypadku &lt;code>footer&lt;/code> musisz ustawić następujące właściwości:&lt;/p>
+    &lt;ul>
+        &lt;li>&lt;code>text-align:&lt;/code> – Ustaw wyrównanie tekstu w stopce (np. &lt;code>center&lt;/code> dla wyśrodkowanego tekstu).&lt;/li>
+        &lt;li>&lt;code>padding:&lt;/code> – Ustaw odstępy wewnętrzne w stopce (np. &lt;code>20px&lt;/code> dla 20px odstępu wewnętrznego).&lt;/li>
+        &lt;li>&lt;code>background-color:&lt;/code> – Ustaw kolor tła stopki (np. &lt;code>#333&lt;/code> dla ciemnego tła).&lt;/li>
+    &lt;/ul>
+
+    &lt;p>Przestestuj działanie kodu i dobierz odpowiednie wartości dla każdej z właściwości, aby strona wyglądała estetycznie i funkcjonalnie!&lt;/p>
+`;
+
+    }else if(level === 15){
+      instructions.innerHTML = `
+    &lt;h2>Poziom 15: Tworzenie Tabeli w HTML&lt;/h2>
+    &lt;p>W tym zadaniu musisz stworzyć tabelę 3x3 wewnątrz sekcji. Poniżej znajdziesz wyjaśnienie, czym są różne elementy HTML używane w tabeli:&lt;/p>
+
+    &lt;h3>&lt;code>&amp;lt;tr&amp;gt;&lt;/code> – Wiersz Tabeli&lt;/h3>
+    &lt;p>Element &lt;code>&amp;lt;tr&amp;gt;&lt;/code> reprezentuje wiersz tabeli. Każdy wiersz zawiera komórki, które są reprezentowane przez elementy &lt;code>&amp;lt;td&amp;gt;&lt;/code> (dla danych) lub &lt;code>&amp;lt;th&amp;gt;&lt;/code> (dla nagłówków). Możesz dodać dowolną liczbę komórek w każdym wierszu.&lt;/p>
+
+    &lt;h3>&lt;code>&amp;lt;th&amp;gt;&lt;/code> – Nagłówek Tabeli&lt;/h3>
+    &lt;p>Element &lt;code>&amp;lt;th&amp;gt;&lt;/code> jest używany do definiowania nagłówka tabeli. Nagłówek jest zazwyczaj pogrubiony i wyśrodkowany. Zawiera on opis kolumn lub wierszy w tabeli.&lt;/p>
+
+    &lt;h3>&lt;code>&amp;lt;td&amp;gt;&lt;/code> – Komórka Tabeli&lt;/h3>
+    &lt;p>Element &lt;code>&amp;lt;td&amp;gt;&lt;/code> reprezentuje zwykłą komórkę tabeli, która zawiera dane. Każda komórka jest umieszczona w wierszu &lt;code>&amp;lt;tr&amp;gt;&lt;/code>. Możesz umieścić w niej tekst, obrazy, linki i inne elementy HTML.&lt;/p>
+
+    &lt;h3>Przykład Tabeli 3x3:&lt;/h3>
+    &lt;table>
+        &lt;tr>
+            &lt;th>Nagłówek1&lt;/th>
+            &lt;th>Nagłówek2&lt;/th>
+            &lt;th>Nagłówek3&lt;/th>
+        &lt;/tr>
+        &lt;tr>
+            &lt;td>Dane1&lt;/td>
+            &lt;td>Dane2&lt;/td>
+            &lt;td>Dane3&lt;/td>
+        &lt;/tr>
+        &lt;tr>
+            &lt;td>Dane4&lt;/td>
+            &lt;td>Dane5&lt;/td>
+            &lt;td>Dane6&lt;/td>
+        &lt;/tr>
+    &lt;/table>
+
+    &lt;p>Użyj tych elementów, aby stworzyć tabelę 3x3. Każdy wiersz powinien mieć trzy komórki, z których jedna powinna zawierać nagłówek (z użyciem &lt;code>&amp;lt;th&amp;gt;&lt;/code>), a pozostałe powinny zawierać dane (z użyciem &lt;code>&amp;lt;td&amp;gt;&lt;/code>).&lt;/p>
+`;
+
+
+    }
+    else if(level === 16){
+      instructions.innerHTML = `
+    &lt;h2>Poziom 16: Ustawienie stylów dla &lt;code>nav&lt;/code>, &lt;code>ul&lt;/code>, &lt;code>li&lt;/code> i &lt;code>a&lt;/code>&lt;/h2>
+    &lt;p>W tym zadaniu musisz ustawić właściwości CSS dla elementów nawigacyjnych: &lt;code>nav&lt;/code>, &lt;code>ul&lt;/code>, &lt;code>li&lt;/code> oraz &lt;code>a&lt;/code>.&lt;/p>
+    &lt;p>Oto jakie właściwości musisz dodać:&lt;/p>
+
+    &lt;h3>1. Ustawienia dla &lt;code>nav ul&lt;/code>&lt;/h3>
+    &lt;p>W przypadku &lt;code>nav ul&lt;/code> musisz ustawić następujące właściwości:&lt;/p>
+    &lt;ul>
+        &lt;li>&lt;code>list-style:&lt;/code> – Usuń domyślne punkty listy z elementu &lt;code>&amp;lt;ul&amp;gt;&lt;/code> (wartość: &lt;code>none&lt;/code>).&lt;/li>
+        &lt;li>&lt;code>padding:&lt;/code> – Usuń wewnętrzne odstępy z elementu &lt;code>&amp;lt;ul&amp;gt;&lt;/code> (wartość: &lt;code>0&lt;/code>).&lt;/li>
+    &lt;/ul>
+
+    &lt;h3>2. Ustawienia dla &lt;code>nav ul li&lt;/code>&lt;/h3>
+    &lt;p>W przypadku &lt;code>nav ul li&lt;/code> musisz ustawić następujące właściwości:&lt;/p>
+    &lt;ul>
+        &lt;li>&lt;code>display:&lt;/code> – Ustaw sposób wyświetlania elementów listy &lt;code>&amp;lt;li&amp;gt;&lt;/code> (wartość: &lt;code>inline&lt;/code> sprawia, że elementy &lt;code>&amp;lt;li&amp;gt;&lt;/code> będą wyświetlane obok siebie).&lt;/li>
+        &lt;li>&lt;code>margin:&lt;/code> – Ustaw odstępy zewnętrzne wokół każdego elementu &lt;code>&amp;lt;li&amp;gt;&lt;/code> (np. &lt;code>0 10px&lt;/code> dla odstępu 10px po lewej i prawej stronie).&lt;/li>
+    &lt;/ul>
+
+    &lt;h3>3. Ustawienia dla &lt;code>nav ul li a&lt;/code>&lt;/h3>
+    &lt;p>W przypadku &lt;code>nav ul li a&lt;/code> musisz ustawić następujące właściwości:&lt;/p>
+    &lt;ul>
+        &lt;li>&lt;code>color:&lt;/code> – Ustaw kolor tekstu linków &lt;code>&amp;lt;a&amp;gt;&lt;/code> (np. &lt;code>#fff&lt;/code> dla białego tekstu).&lt;/li>
+        &lt;li>&lt;code>text-decoration:&lt;/code> – Usuń podkreślenie z linków (wartość: &lt;code>none&lt;/code>).&lt;/li>
+    &lt;/ul>
+`;
+
+
+    }else if(level === 17){
+      instructions.innerHTML = `
+  &lt;h2>Poziom 17: Ustawienie stylów dla nagłówków i tabeli&lt;/h2>
+  &lt;p>W tym zadaniu musisz ustawić style CSS dla elementów: &lt;code>h2&lt;/code>, &lt;code>table&lt;/code>, &lt;code>th&lt;/code>, &lt;code>td&lt;/code>.&lt;/p>
+  &lt;p>Oto jakie właściwości musisz dodać:&lt;/p>
+  &lt;ul>
+      &lt;li>&lt;code>color:&lt;/code> – ustaw kolor tekstu w nagłówku &lt;code>&amp;lt;h2&amp;gt;&lt;/code>. Możesz wybrać dowolny kolor, np. &lt;code>#333&lt;/code> dla ciemniejszego odcienia tekstu.&lt;/li>
+  &lt;/ul>
+  &lt;h3>1. Ustawienia dla &lt;code>table&lt;/code>&lt;/h3>
+  &lt;p>W przypadku tabeli musisz ustawić następujące właściwości:&lt;/p>
+  &lt;ul>
+      &lt;li>&lt;code>width:&lt;/code> – ustaw szerokość tabeli. Możesz wybrać wartość w procentach (np. &lt;code>100%&lt;/code>), px (np. &lt;code>600px&lt;/code>) lub innych jednostkach.&lt;/li>
+      &lt;li>&lt;code>border-collapse:&lt;/code> – ustaw sposób wyświetlania granic tabeli. Możesz użyć wartości &lt;code>collapse&lt;/code> (granice zleją się) lub &lt;code>separate&lt;/code> (granice pozostaną oddzielne).&lt;/li>
+      &lt;li>&lt;code>border:&lt;/code> – ustaw obramowanie tabeli. Możesz wybrać kolor, szerokość i styl obramowania, np. &lt;code>1px solid #ddd&lt;/code>.&lt;/li>
+  &lt;/ul>
+  &lt;h3>2. Ustawienia dla nagłówków &lt;code>table, th, td&lt;/code>&lt;/h3>
+  &lt;p>W przypadku nagłówków tabeli (element &lt;code>&amp;lt;th&amp;gt;&lt;/code>) musisz ustawić następujące właściwości:&lt;/p>
+  &lt;ul>
+      &lt;li>&lt;code>padding:&lt;/code> – ustaw wewnętrzne odstępy w komórkach nagłówka. Możesz wybrać dowolną wartość, np. &lt;code>10px&lt;/code> lub &lt;code>1em&lt;/code>.&lt;/li>
+      &lt;li>&lt;code>text-align:&lt;/code> – ustawia wyrównanie tekstu w komórkach nagłówka. Możesz wybrać jedną z wartości: &lt;code>left&lt;/code>, &lt;code>center&lt;/code> lub &lt;code>right&lt;/code>.&lt;/li>
+      &lt;li>&lt;code>background-color:&lt;/code> – ustaw kolor tła nagłówków tabeli. Możesz wybrać np. &lt;code>#f4f4f4&lt;/code> lub inny kolor tła, który pasuje do ogólnej kolorystyki strony.&lt;/li>
+  &lt;/ul>
+  &lt;h3>3. Ustawienia dla komórek &lt;code>th, td&lt;/code>&lt;/h3>
+  &lt;p>W przypadku komórek tabeli (element &lt;code>&amp;lt;td&amp;gt;&lt;/code>) musisz ustawić następujące właściwości:&lt;/p>
+  &lt;ul>
+      &lt;li>&lt;code>padding:&lt;/code> – ustawia wewnętrzne odstępy w komórkach. Wybierz wartość, np. &lt;code>10px&lt;/code> lub &lt;code>1em&lt;/code>, aby nadać komórkom odpowiednią przestrzeń.&lt;/li>
+      &lt;li>&lt;code>text-align:&lt;/code> – ustawia wyrównanie tekstu w komórkach. Możesz wybrać jedną z wartości: &lt;code>left&lt;/code>, &lt;code>center&lt;/code> lub &lt;code>right&lt;/code>, aby dostosować tekst do odpowiedniego położenia w komórkach.&lt;/li>
+      &lt;li>&lt;code>border:&lt;/code> – ustawia obramowanie komórek tabeli. Może być to np. &lt;code>1px solid #ddd&lt;/code>, aby komórki były otoczone cienką granicą o odpowiednim kolorze.&lt;/li>
+  &lt;/ul>
+  &lt;p>Pamiętaj, że masz pełną swobodę w doborze wartości dla tych właściwości, ale ważne jest, aby strona była estetyczna i funkcjonalna. Dobrze dobrane style sprawią, że tabela będzie bardziej czytelna i łatwa do przeglądania.&lt;/p>
+  &lt;p>Zagnieżdżenie elementów w CSS pozwala na precyzyjne stylowanie specyficznych części strony, takich jak nagłówki tabeli czy komórki. Na przykład, &lt;code>table, th, td&lt;/code> oznacza, że styl będzie stosowany do tabeli oraz do jej nagłówków i komórek.&lt;/p>
+`;
+
+    }else if (level === 18){
+      instructions.innerHTML = `
+  &lt;h2>Poziom 18: Stwórz formularz z polami do wypełnienia&lt;/h2>
+  &lt;p>W tym zadaniu musisz stworzyć formularz HTML z następującymi polami:&lt;/p>
+  &lt;ul>
+      &lt;li>&lt;code>Imię:&lt;/code> – pole tekstowe, w którym użytkownik wprowadzi swoje imię.&lt;/li>
+      &lt;li>&lt;code>Nazwisko:&lt;/code> – pole tekstowe, w którym użytkownik wprowadzi swoje nazwisko.&lt;/li>
+      &lt;li>&lt;code>Numer telefonu:&lt;/code> – pole do wprowadzenia numeru telefonu w formacie tekstowym.&lt;/li>
+      &lt;li>&lt;code>E-mail:&lt;/code> – pole do wprowadzenia adresu e-mail w odpowiednim formacie.&lt;/li>
+  &lt;/ul>
+  &lt;h3>1. Pole imienia&lt;/h3>
+  &lt;p>W formularzu należy umieścić pole tekstowe dla imienia. Użyj elementu &lt;code>&amp;lt;input type="text"&amp;gt;&lt;/code>, aby umożliwić użytkownikowi wprowadzenie tekstu. Pole to będzie domyślnie wymagane, dzięki atrybutowi &lt;code>required&lt;/code>.&lt;/p>
+  &lt;h3>2. Pole nazwiska&lt;/h3>
+  &lt;p>Podobnie jak dla imienia, musisz dodać pole tekstowe dla nazwiska, które również będzie wymagane. W tym przypadku używamy również &lt;code>&amp;lt;input type="text"&amp;gt;&lt;/code> i &lt;code>required&lt;/code>.&lt;/p>
+  &lt;h3>3. Pole numeru telefonu&lt;/h3>
+  &lt;p>Pole numeru telefonu powinno umożliwiać użytkownikowi wprowadzenie numeru telefonu. Użyj elementu &lt;code>&amp;lt;input type="tel"&amp;gt;&lt;/code> z odpowiednim atrybutem &lt;code>required&lt;/code>. Ten typ pola pomoże w przyszłości wymusić odpowiedni format numeru telefonu.&lt;/p>
+  &lt;h3>4. Pole e-maila&lt;/h3>
+  &lt;p>Formularz powinien zawierać pole do wprowadzenia e-maila. Użyj elementu &lt;code>&amp;lt;input type="email"&amp;gt;&lt;/code>, który automatycznie sprawdza, czy wprowadzony tekst jest poprawnym adresem e-mail.&lt;/p>
+  &lt;h3>5. Przycisk "Wyślij"&lt;/h3>
+  &lt;p>Formularz musi zawierać przycisk typu &lt;code>&amp;lt;input type="submit"&amp;gt;&lt;/code>, który pozwoli na wysłanie danych formularza po kliknięciu przez użytkownika. Przycisk ten zostanie wyświetlony na końcu formularza.&lt;/p>
+  &lt;p>Wszystkie pola w formularzu muszą mieć atrybut &lt;code>required&lt;/code>, aby użytkownik nie mógł wysłać formularza bez ich wypełnienia. Atrybut &lt;code>required&lt;/code> jest istotny, ponieważ sprawia, że każde pole musi zostać uzupełnione przed wysłaniem formularza.&lt;/p>
+  &lt;p>Formularz powinien wyglądać następująco:&lt;/p>
+  &lt;pre>
+    &lt;code>
+      &amp;lt;form&amp;gt;
+        &amp;lt;input type="text" placeholder="Imię" required&amp;gt;
+        &amp;lt;input type="text" placeholder="Nazwisko" required&amp;gt;
+        &amp;lt;input type="tel" placeholder="Numer telefonu" required&amp;gt;
+        &amp;lt;input type="email" placeholder="E-mail" required&amp;gt;
+        &amp;lt;input type="submit" value="Wyślij"&amp;gt;
+      &amp;lt;/form&amp;gt;
+    &lt;/code>
+  &lt;/pre>
+  &lt;p>Wszystkie pola są wymagane, dlatego nie będzie można wysłać formularza bez ich uzupełnienia. Użycie typu &lt;code>tel&lt;/code> w polu numeru telefonu oraz typu &lt;code>email&lt;/code> w polu e-maila zapewnia, że dane te będą odpowiednio sprawdzone pod względem formatu.&lt;/p>
+`;}else if(level === 19){
+  instructions.innerHTML = `
+  &lt;h2>Poziom 19: Zmień wygląd formularza&lt;/h2>
+  &lt;p>W tym zadaniu masz za zadanie zmienić wygląd formularza za pomocą CSS. Poniżej znajdziesz wskazówki dotyczące stylizacji poszczególnych elementów formularza. Dla każdej z właściwości podałem przykłady wartości, które możesz dodać.&lt;/p>
+
+  &lt;h3>Stylizowanie formularza (&lt;code>form&lt;/code>)&lt;/h3>
+  &lt;p>W formularzu możesz dostosować następujące właściwości:&lt;/p>
+  &lt;ul>
+    &lt;li>&lt;code>background-color&lt;/code> – zmień kolor tła formularza. Przykład: &lt;code>background-color: #f4f4f4;&lt;/code> (jasny szary) lub &lt;code>background-color: #ffffff;&lt;/code> (biały).&lt;/li>
+    &lt;li>&lt;code>width&lt;/code> – ustal szerokość formularza. Może to być wartość procentowa lub stała szerokość w pikselach. Przykład: &lt;code>width: 80%;&lt;/code> lub &lt;code>width: 500px;&lt;/code>.&lt;/li>
+    &lt;li>&lt;code>margin&lt;/code> – ustaw marginesy, aby formularz nie był przyklejony do krawędzi ekranu. Przykład: &lt;code>margin: 20px auto;&lt;/code> (automatyczne centrowanie formularza) lub &lt;code>margin: 10px;&lt;/code>.&lt;/li>
+    &lt;li>&lt;code>padding&lt;/code> – dodaj wewnętrzne odstępy, aby tekst w formularzu miał odpowiednią przestrzeń. Przykład: &lt;code>padding: 15px;&lt;/code> (15px od każdej strony) lub &lt;code>padding: 20px 40px;&lt;/code> (20px z góry i dołu, 40px z lewej i prawej strony).&lt;/li>
+    &lt;li>&lt;code>border-radius&lt;/code> – nadaj formularzowi zaokrąglone rogi. Przykład: &lt;code>border-radius: 10px;&lt;/code> (duże zaokrąglenie) lub &lt;code>border-radius: 5px;&lt;/code> (mniejsze zaokrąglenie).&lt;/li>
+  &lt;/ul>
+
+  &lt;h4>Przykład kodu dla formularza:&lt;/h4>
+  &lt;pre>&lt;code>
+form {
+  background-color: #f4f4f4; /* Kolor tła formularza */
+  width: 80%; /* Szerokość formularza */
+  margin: 20px auto; /* Marginesy zewnętrzne */
+  padding: 15px; /* Odstępy wewnętrzne */
+  border-radius: 10px; /* Zaokrąglone rogi formularza */
+}
+  &lt;/code>&lt;/pre>
+
+  &lt;h3>Stylizowanie pól formularza (&lt;code>input&lt;/code>)&lt;/h3>
+  &lt;p>Podobnie jak formularz, możesz dostosować wygląd pól formularza, zmieniając następujące właściwości:&lt;/p>
+  &lt;ul>
+    &lt;li>&lt;code>background-color&lt;/code> – zmień kolor tła dla pól formularza. Przykład: &lt;code>background-color: #ffffff;&lt;/code> (biały) lub &lt;code>background-color: #e0e0e0;&lt;/code> (jasnoszary).&lt;/li>
+    &lt;li>&lt;code>border&lt;/code> – ustal obramowanie pól formularza. Przykład: &lt;code>border: 1px solid #ccc;&lt;/code> (szare obramowanie) lub &lt;code>border: 2px solid #333;&lt;/code> (ciemniejsze obramowanie).&lt;/li>
+    &lt;li>&lt;code>padding&lt;/code> – dodaj przestrzeń wewnątrz pól formularza. Przykład: &lt;code>padding: 10px;&lt;/code> lub &lt;code>padding: 12px 15px;&lt;/code> (większe odstępy z lewej i prawej strony).&lt;/li>
+    &lt;li>&lt;code>font-size&lt;/code> – zmień rozmiar czcionki w polach formularza. Przykład: &lt;code>font-size: 16px;&lt;/code> lub &lt;code>font-size: 14px;&lt;/code> (dla mniejszych pól).&lt;/li>
+    &lt;li>&lt;code>border-radius&lt;/code> – zaokrąglij rogi pól, aby pasowały do formularza. Przykład: &lt;code>border-radius: 5px;&lt;/code> lub &lt;code>border-radius: 10px;&lt;/code> (większe zaokrąglenie).&lt;/li>
+  &lt;/ul>
+
+  &lt;h4>Przykład kodu dla pól formularza:&lt;/h4>
+  &lt;pre>&lt;code>
+input {
+  background-color: #ffffff; /* Kolor tła pola */
+  border: 1px solid #ccc; /* Szare obramowanie */
+  padding: 10px; /* Wewnętrzne odstępy */
+  font-size: 16px; /* Rozmiar czcionki */
+  border-radius: 5px; /* Zaokrąglone rogi */
+}
+  &lt;/code>&lt;/pre>
+
+  &lt;h3>Stylizowanie przycisku formularza (&lt;code>button&lt;/code>)&lt;/h3>
+  &lt;p>Przycisk formularza możesz stylizować, zmieniając następujące właściwości:&lt;/p>
+  &lt;ul>
+    &lt;li>&lt;code>background-color&lt;/code> – ustaw kolor tła przycisku. Przykład: &lt;code>background-color: #4CAF50;&lt;/code> (zielony) lub &lt;code>background-color: #008CBA;&lt;/code> (niebieski).&lt;/li>
+    &lt;li>&lt;code>border&lt;/code> – ustal obramowanie przycisku. Przykład: &lt;code>border: 1px solid #4CAF50;&lt;/code> (zielone obramowanie) lub &lt;code>border: 1px solid #008CBA;&lt;/code> (niebieskie obramowanie).&lt;/li>
+    &lt;li>&lt;code>padding&lt;/code> – dodaj przestrzeń wewnątrz przycisku. Przykład: &lt;code>padding: 10px 20px;&lt;/code> (więcej przestrzeni po bokach).&lt;/li>
+    &lt;li>&lt;code>font-size&lt;/code> – zmień rozmiar czcionki w przycisku. Przykład: &lt;code>font-size: 16px;&lt;/code> lub &lt;code>font-size: 18px;&lt;/code> (większa czcionka).&lt;/li>
+    &lt;li>&lt;code>color&lt;/code> – ustaw kolor tekstu w przycisku. Przykład: &lt;code>color: white;&lt;/code> lub &lt;code>color: #fff;&lt;/code> (biały).&lt;/li>
+    &lt;li>&lt;code>border-radius&lt;/code> – zaokrąglij rogi przycisku. Przykład: &lt;code>border-radius: 5px;&lt;/code> lub &lt;code>border-radius: 10px;&lt;/code>.&lt;/li>
+    &lt;li>&lt;code>cursor&lt;/code> – zmień kursor na "rękę" po najechaniu na przycisk. Przykład: &lt;code>cursor: pointer;&lt;/code>.&lt;/li>
+  &lt;/ul>
+
+  &lt;h4>Przykład kodu dla przycisku:&lt;/h4>
+  &lt;pre>&lt;code>
+button {
+  background-color: #4CAF50; /* Zielone tło przycisku */
+  border: 1px solid #4CAF50; /* Zielone obramowanie */
+  padding: 10px 20px; /* Wewnętrzne odstępy */
+  font-size: 16px; /* Rozmiar czcionki */
+  color: white; /* Kolor tekstu */
+  border-radius: 5px; /* Zaokrąglone rogi */
+  cursor: pointer; /* Kursor ręki */
+}
+button:hover {
+  background-color: #45a049; /* Zmiana koloru tła po najechaniu */
+}
+  &lt;/code>&lt;/pre>
+
+  &lt;p>Po zakończeniu pracy nad stylem formularza, kliknij przycisk "Sprawdź", aby upewnić się, że formularz spełnia wymagania.&lt;/p>
+`;  
+}else if(level===20){
+  instructions.innerHTML = `
+  &lt;div style="text-align: center; padding: 30px; background-color: #f4f4f4; border-radius: 10px; max-width: 600px; margin: 0 auto; font-family: 'Arial', sans-serif; color: #333;">
+    &lt;h2 style="color: #4CAF50;">Gratulacje!&lt;/h2>
+    &lt;p style="font-size: 18px; line-height: 1.6; color: #555;">Właśnie zakończyłeś swoją przygodę z tym projektem. Twoje zaangażowanie, cierpliwość i praca nad każdym zadaniem są godne podziwu!&lt;/p>
+    &lt;p style="font-size: 18px; line-height: 1.6; color: #555;">Nie zatrzymuj się tutaj! To dopiero początek Twojej drogi, a każda linijka kodu przybliża Cię do wielkich osiągnięć. Wierzę w Ciebie!&lt;/p>
+    &lt;p style="font-size: 18px; line-height: 1.6; color: #555;">Życzę Ci powodzenia na kolejnych etapach nauki i kariery – pamiętaj, że każdy dzień to krok ku spełnieniu Twoich marzeń!&lt;/p>
+    &lt;p style="font-size: 20px; font-weight: bold; color: #4CAF50;">Wielkie gratulacje!&lt;/p>
+  &lt;/div>
+`;
+
+
+}
+  }
+/**
+ * Aktualizuj podgląd przy każdej zmianie w kodzie HTML
+ */
+  htmlCode.addEventListener('input', updatePreview);
+  /**
+ * Aktualizuj podgląd przy każdej zmianie w kodzie CSS
+ */
+  cssCode.addEventListener('input', updatePreview);
+  /**
+ * Wywołanie funkcji aktualizującej iframe przy każdej zmianie w kodzie
+ */
+  updatePreview();
+
+  
+});</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sun Jan 12 2025 15:08:42 GMT+0100 (czas środkowoeuropejski standardowy)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

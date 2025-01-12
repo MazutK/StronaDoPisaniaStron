@@ -1,0 +1,19 @@
+{
+  "name": "Internetowa gra interaktywna",
+  "version": "1.0.0",
+  "description": "Projekt edukacyjny wspomagający naukę pisania stron internetowych ",
+  "main": "script.js",
+  "scripts": {
+    "doc": "jsdoc -c jsdoc.json",
+    "jsdoc": "jsdoc ./src -r -d ./docs"
+  },
+  "keywords": [
+    "jsdoc",
+    "documentation"
+  ],
+  "author": "Kacper Mazur",
+  "license": "ISC",
+  "devDependencies": {
+    "jsdoc": "^4.0.4"
+  }
+}
